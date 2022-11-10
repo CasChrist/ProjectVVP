@@ -4,8 +4,8 @@
 
 # импорт зависимых библиотек
 import eb_config, logging
-from telegram inport Update
-from telegram.ext import ApplicationHandler, CommandHandler, MessageHandler, Filters
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
 
 # подключаем журнал аудита (лог действий)
 logging.basicConfig(format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s', level = logging.INFO)
@@ -26,7 +26,7 @@ async def echo(update, context):
 async def caps(update, context):
     if context.args:
         text_caps = ' '.join(context.args).upper()
-        await context.bot.send_message(chat_id = update.effective_chat_id, text = text_caps)
+        await context.bot.send_message(chat_id = update.effective_chat.id, text = text_caps)
     else:
         await context.bot.send_message(chat_id = update.effective_chat.id, text = "No command arguments detected.\nUsage: /caps (arguments)")
 
@@ -43,13 +43,13 @@ if __name__ == '__main__':
     start_handler = CommandHandler('start', start)
     
     # при получении сообщения без '/' требуется вывести пользователю его же сообщение
-    echo_handler = MessageHandler(Filters.TEXT & (~Filters.COMMAND), echo)
+    echo_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), echo)
     
     # при получении запроса '/caps (arguments)' требуется вызвать функцию 'caps()'
     caps_handler = CommandHandler('caps', caps)
     
     # при получении неизвестного запроса требуется вызвать функцию 'unknown()'
-    unknown_handler = MessageHandler(Filters.command, unknown)
+    unknown_handler = MessageHandler(filters.COMMAND, unknown)
     
     # добавяем все хэндлеры в приложение
     app.add_handler(start_handler)
