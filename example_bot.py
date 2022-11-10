@@ -32,7 +32,7 @@ async def caps(update, context):
 
 # функция 'unknown()' обрабатывает нераспознанные команды
 async def unknown (update, context):
-    await context.bot.send_message(chat_id = update.effective_chat.id, text = "Looks like you've entered a command I cannot recognize.")
+    await context.bot.send_message(chat_id = update.effective_chat.id, text = "Looks like a piece of shit, maaaaaaaaan.")
 
 
 # запуск бота
