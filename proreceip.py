@@ -1,7 +1,7 @@
 ﻿from bs4 import BeautifulSoup
 import requests
-#возвращает словарь с рецептом
-#аргумент - номер рецепта в базе сайта
+#Функция возвращает словарь с рецептом
+#аргумент - номер рецепта в массиве адресов urlnum
 def findreceip(order):
     #Создаем url
     url="https://www.povarenok.ru/recipes/show/"+order
@@ -11,21 +11,30 @@ def findreceip(order):
     print(page.status_code)
     #преобразую страницу в текст
     soup = BeautifulSoup(page.text, "html.parser")
+    
+    
+
     #словарь рецепта
     datarec = {"image": '', "title": '', "descriptiion": '', "resource": url}
+    #где: картинка, название, описание, адрес рецепта на сайте
+
+    
+
     #картинка
     image = []
     findimgs=soup.findAll('img', itemprop='image')
     image=findimgs[0].attrs['src']
     datarec["image"]=image
+    
     #название
     title = []
-    #на случай если нужно использовать другое поле
-    #findtitle=soup.findAll('h1', itemprop='name')
-    #for data in findtitle:
-    #    title.append(data.text)
+        #на случай если нужно использовать другое поле
+        #findtitle=soup.findAll('h1', itemprop='name')
+        #for data in findtitle:
+        #    title.append(data.text)
     title=findimgs[0].attrs['title']
     datarec["title"] = title
+    
     #описание
     description = []
     finddesc=soup.findAll('div', class_='article-text')
@@ -37,6 +46,7 @@ def findreceip(order):
     for data in description:
         desctext=desctext+data
     datarec['description']=desctext
+    
     #Возвращает в вызывающую функцию словарь рецепта
     return datarec
 
