@@ -1,2 +1,3 @@
 
-eb_config.py
+__pycache__
+secret_info.py

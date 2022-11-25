@@ -1,4 +1,5 @@
-import telegram, telegram.ext
+import telegram
+import telegram.ext
 
 # Этапы/состояния разговора
 CHOOSING, TYPING_REPLY, TYPING_CHOICE = range(3)
@@ -51,7 +52,7 @@ async def received_information(update: telegram.Update, context: telegram.ext.Co
         reply_markup = markup)
     return CHOOSING
 
-async  def done(update: telegram.Update, context: telegram.ext.ContextTypes.DEFAULT_TYPE) -> int:
+async def done(update: telegram.Update, context: telegram.ext.ContextTypes.DEFAULT_TYPE) -> int:
     # Вывод собранной информации и завершение разговора
     user_data = context.user_data
     if "choice" in user_data:

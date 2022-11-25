@@ -7,6 +7,6 @@
 файл configtoken содержит только строку mytoken='ну токен собственно'
 
 библиотеки
-python-telegram-bot 13.14 (только для файла main)
+python-telegram-bot 13.14 (временно - только для файла main)
 python-telegram-bot 20.x
 lxml 4.9.0 , beautifulsoup4 , requests

@@ -1,12 +1,17 @@
 """
-Асинхронный Telegram-бот на python-telegram-bot версии 20.х
+Асинхронный Telegram-бот на python-telegram-bot версии 20.x
 """
 
+import logging
+
+from telegram.ext import (ApplicationBuilder, CommandHandler,
+                          ConversationHandler, MessageHandler, filters)
+
+import eb_btn_menu
 # импорт зависимых библиотек
-import eb_config, logging, eb_btn_menu
-from eb_btn_menu import facts_to_str, regular_choice, custom_choice, received_information, done, CHOOSING, TYPING_REPLY, TYPING_CHOICE, reply_keyboard, markup
-from telegram import Update, KeyboardButton
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ConversationHandler, filters
+import secret_info
+from eb_btn_menu import (CHOOSING, TYPING_CHOICE, TYPING_REPLY, custom_choice,
+                         done, received_information, regular_choice)
 
 # подключаем журнал аудита (лог действий)
 logging.basicConfig(format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s', level = logging.INFO)
@@ -39,10 +44,10 @@ async def unknown (update, context):
 
 # запуск бота
 if __name__ == '__main__':
-    app = ApplicationBuilder().token(eb_config.TOKEN).build()
+    app = ApplicationBuilder().token(secret_info.TOKEN).build()
     
-    """ при получении запроса '/start' требуется вызвать функцию 'start()'
-    start_handler = CommandHandler('start', start) """
+    # при получении запроса '/start' требуется вызвать функцию 'start()'
+    # start_handler = CommandHandler('start', start)
     
     # при получении сообщения без '/' требуется вывести пользователю его же сообщение
     #echo_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), echo)

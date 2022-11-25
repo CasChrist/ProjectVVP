@@ -1,8 +1,8 @@
 #библиотека python-telegram-bot 13.14
 #конфигурация бота
-from configtoken import mytoken #токен бота
+from secret_info import TOKEN #токен бота
 from telegram.ext import Updater
-TOKEN=mytoken
+TOKEN=TOKEN
 updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
 import logging
@@ -33,6 +33,7 @@ def receip(update, context):
     order = proreceip.urlreceip["Борщ"][2][3]
     #получаем словарь рецепта по адресу
     receipdata = proreceip.findreceip(order)
+
     #Здесь нужно преобразовать словарь рецепта в сообщение
     context.bot.send_photo(chat_id=update.effective_chat.id,
                              photo=receipdata['image'],
@@ -40,7 +41,8 @@ def receip(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id,
                              text=receipdata['description'])
     context.bot.send_message(chat_id=update.effective_chat.id,
-                             text='Источник рецепта:\n'+receipdata['resource'])                      
+                             text='Источник рецепта:\n'+receipdata['resource'])
+               
 #срабатывает по команде /receip
 receip_handler = CommandHandler('receip', receip)
 dispatcher.add_handler(receip_handler)
