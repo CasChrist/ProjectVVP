@@ -1,24 +1,20 @@
 ﻿from bs4 import BeautifulSoup
 import requests
 #Функция возвращает словарь с рецептом
-#аргумент - номер рецепта в массиве адресов urlnum
+#аргумент - номер рецепта в массиве адресов urlnum (url адрес рецепта)
 def findreceip(order):
     #Создаем url
-    url="https://www.povarenok.ru/recipes/show/"+order
+    url=order
     #Здесь считывание html-страницы
     page = requests.get(url)
     #проверка получения страницы, 200 = все хорошо
     print(page.status_code)
     #преобразую страницу в текст
     soup = BeautifulSoup(page.text, "html.parser")
-    
-    
 
     #словарь рецепта
-    datarec = {"image": '', "title": '', "descriptiion": '', "resource": url}
-    #где: картинка, название, описание, адрес рецепта на сайте
-
-    
+    datarec = {"image": '', "title": '', "descriptiion": '', "resource": url, "ingredients": 'example', "step01": 'someexample'}
+    #где: картинка, название, описание, адрес рецепта на сайте, ингредиенты, шаги рецепта (дальше-больше)
 
     #картинка
     image = []
@@ -50,19 +46,8 @@ def findreceip(order):
     #Возвращает в вызывающую функцию словарь рецепта
     return datarec
 
-
-
-#Массивы для каждой категории записаны в отдельном файле
-import receips
-#Словарь с названиями всех категорий с именами рецептов
-subcategories = {
-    "Борщ": receips.soup_hot_borsh,
-    "Щи": receips.soup_hot_shi,
-    "Домашний майонез": receips.sauce_domashniy_maionez
-    }
-#Словарь адресов по категориям для вызова соответствующего рецепта (для функции)
-urlreceip = {
-    "Борщ": receips.urlnum_soup_hot_borsh,
-    "Щи": receips.urlnum_soup_hot_shi,
-    "Домашний майонез": receips.urlnum_sauce_domashniy_maionez
-}
+#Считать словари рецептов из файла
+import pickle
+file=open("receips.dat", "rb")
+subcategories=pickle.load(file)
+urlreceip=pickle.load(file)
