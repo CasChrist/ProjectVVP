@@ -62,6 +62,6 @@ def listreceip():
 subcategories, urlreceip = listreceip()
 #Записать массивы в файл receips.dat
 import pickle
-file=open("receips.dat", "wb")
+file=open("./Data/receips.dat", "wb")
 pickle.dump(subcategories, file)
 pickle.dump(urlreceip, file)

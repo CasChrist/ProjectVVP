@@ -36,8 +36,8 @@ for key in subcategories.keys():
 #Шаблон вызывающей функции
 async def receip(update, context):
     #Вызываем адрес рецепта по подкатегории и номеру в массиве
-    #По дефолту (категория борщ, 3 строка, 4 столбец, "Жареный борщ")
-    order = proreceip.urlreceip[listcat[0]][2][3]
+    #По дефолту вызывает пустой рецепт
+    order = proreceip.urlreceip[listcat[331]][2][4]
     
     #Получаем словарь рецепта по адресу
     receipdata = proreceip.findreceip(order)
