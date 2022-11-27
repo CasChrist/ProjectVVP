@@ -14,7 +14,7 @@ def findreceip(order):
 
     #словарь рецепта
     datarec = {"image": '', "title": '', "descriptiion": '', "resource": url, "ingredients": 'example ingredients', 
-               "step01": 'example step'}
+               "step1": 'example step1'}
     #где: картинка, название, описание, адрес рецепта на сайте, ингредиенты, шаги рецепта (дальше-больше)
 
     #картинка
