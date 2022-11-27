@@ -13,7 +13,8 @@ def findreceip(order):
     soup = BeautifulSoup(page.text, "html.parser")
 
     #словарь рецепта
-    datarec = {"image": '', "title": '', "descriptiion": '', "resource": url, "ingredients": 'example', "step01": 'someexample'}
+    datarec = {"image": '', "title": '', "descriptiion": '', "resource": url, "ingredients": 'example ingredients', 
+               "step01": 'example step'}
     #где: картинка, название, описание, адрес рецепта на сайте, ингредиенты, шаги рецепта (дальше-больше)
 
     #картинка
@@ -46,7 +47,7 @@ def findreceip(order):
     #Возвращает в вызывающую функцию словарь рецепта
     return datarec
 
-#Считать словари рецептов из файла
+#Считать словари рецептов из файла receips.dat
 import pickle
 file=open("receips.dat", "rb")
 subcategories=pickle.load(file)

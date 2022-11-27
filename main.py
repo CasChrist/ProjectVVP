@@ -13,7 +13,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 #запуск выполнения бота
 updater.start_polling()
 
-#подключение обработчика сообщений
+#подключение обработчика сообщений-команд
 from telegram.ext import CommandHandler
 
 #определение команды старт
@@ -26,11 +26,20 @@ dispatcher.add_handler(start_handler)
 #разработка функции вызова словаря рецепта
 #подключение внешнего файла, содержащего массивы с именами рецептов и функцию поиска рецепта
 import proreceip
+#Подключение словарей рецептов и адресов
+subcategories=proreceip.subcategories
+urlrecip=proreceip.urlreceip
+keys={} #Список подкатегорий
+i=0
+for key in subcategories.keys():
+    keys[i]=key
+    i=i+1
+
 #прототип вызывающей функции
 def receip(update, context):
     #вызываем адрес рецепта по подкатегории и номеру в массиве
     #по дефолту (категория борщ, 3 строка, 4 столбец, "Жареный борщ")
-    order = proreceip.urlreceip["Борщ"][2][3]
+    order = proreceip.urlreceip[keys[0]][2][3]
     #получаем словарь рецепта по адресу
     receipdata = proreceip.findreceip(order)
 
@@ -40,6 +49,8 @@ def receip(update, context):
                              caption=receipdata['title'])
     context.bot.send_message(chat_id=update.effective_chat.id,
                              text=receipdata['description'])
+    context.bot.send_message(chat_id=update.effective_chat.id,
+                             text=receipdata['ingredients']+'\n'+receipdata['step01'])
     context.bot.send_message(chat_id=update.effective_chat.id,
                              text='Источник рецепта:\n'+receipdata['resource'])
                
