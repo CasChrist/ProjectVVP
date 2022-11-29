@@ -10,11 +10,12 @@ def findreceip(order):
         "description":  'ExDesNotFound',
         "resource":      order,
         "ingredients":  'ExIngNotFound', 
-        "step1":        'ExSt1NotFound'}
+        "step1":        'ExStsNotFound'}
     #Где: картинка, название, описание, адрес рецепта на сайте, ингредиенты, шаги рецепта (дальше-больше)
 
     #Создаем url
     url=order
+    #Если случайно запрошен пустой рецепт, то вернуть дефолтный словарь
     if url==str:
         datarec["resource"]='UNKNOWN URL'
         return datarec
@@ -54,11 +55,48 @@ def findreceip(order):
     datarec['description']=desctext
     
     #Ингредиенты
+    datarec['ingredients']=''
+    ingstags = []
+    findings=soup.findAll('div', class_='ingredients-bl')
+    arrdiv=findings[0]
+    arrli=arrdiv.findAll('li')
+    for data in arrli:
+        ingstags.append(data.text)
+    i=0
+    for data in ingstags:
+        ingstags[i]=data.translate({ord('\n'):None})
+        while "  " in ingstags[i]:
+            ingstags[i]=ingstags[i].replace("  ", " ")
+        datarec['ingredients']=datarec['ingredients']+ingstags[i]+'\n'
+        i=i+1
+
+    #Шаги
+    number=0
+    stepnumber='step0'
+    stepimg='./Data/Image404.png'
+    findsteps=soup.findAll('li', class_='cooking-bl')
+    if not findsteps:
+        finddiv=soup.findAll('div', itemtype="http://schema.org/Recipe")
+        articlediv=finddiv[0]
+        stepsdiv=articlediv.find('div', class_=None, id=None, itemprop=None)
+        for data in stepsdiv:
+            steptext=data.text
+            stepnumber=stepnumber.replace(str(number), str(number+1))
+            number=number+1
+            datarec[stepnumber]=[stepimg, steptext]
+    else:
+        for data in findsteps:
+            if data.find('img').attrs['src']:
+                stepimg=data.find('img').attrs['src']
+            steptext=data.find('p').text
+            stepnumber=stepnumber.replace(str(number), str(number+1))
+            number=number+1
+            datarec[stepnumber]=[stepimg, steptext]
 
     #Возвращает в вызывающую функцию словарь рецепта
     return datarec
 
-#Считать словари рецептов из файла receips.dat
+#Считать словари рецептов из файла ./Data/receips.dat
 import pickle
 file=open("./Data/receips.dat", "rb")
 subcategories=pickle.load(file)

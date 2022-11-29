@@ -37,23 +37,38 @@ for key in subcategories.keys():
 async def receip(update, context):
     #Вызываем адрес рецепта по подкатегории и номеру в массиве
     #По дефолту вызывает пустой рецепт
-    order = proreceip.urlreceip[listcat[331]][2][4]
+    order = proreceip.urlreceip[listcat[17]][0][1]
     
     #Получаем словарь рецепта по адресу
     receipdata = proreceip.findreceip(order)
 
     #Здесь нужно преобразовать словарь рецепта в сообщения
     #Описание словаря рецепта в файле rsauce
+    
     await context.bot.send_photo(     #Картинка и название
         chat_id=update.effective_chat.id,
         photo=receipdata['image'],
         caption=receipdata['title'])
+    
     await context.bot.send_message(   #Описание
         chat_id=update.effective_chat.id,
         text=receipdata['description'])
-    await context.bot.send_message(   #Ингредиента и шаги
+    
+    await context.bot.send_message(   #Ингредиенты
         chat_id=update.effective_chat.id,
-        text=receipdata['ingredients']+'\n'+receipdata['step1'])
+        text=receipdata['ingredients'])
+
+    #Переслать все шаги
+    number=1    
+    stepnumber='step1'
+    while stepnumber in receipdata:
+        await context.bot.send_photo(     #Картинка и текст шага
+            chat_id=update.effective_chat.id,
+            photo=receipdata[stepnumber][0],
+            caption=receipdata[stepnumber][1])
+        stepnumber=stepnumber.replace(str(number), str(number+1))
+        number=number+1
+    
     await context.bot.send_message(   #Источник
         chat_id=update.effective_chat.id,
         text='Источник рецепта:\n'+receipdata['resource'])
