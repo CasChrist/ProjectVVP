@@ -25,10 +25,10 @@ dispatcher.add_handler(start_handler)
 
 #разработка функции вызова словаря рецепта
 #подключение внешнего файла, содержащего массивы с именами рецептов и функцию поиска рецепта
-import proreceip
+import rsauce, proreceip
 #Подключение словарей рецептов и адресов
-subcategories=proreceip.subcategories
-urlrecip=proreceip.urlreceip
+subcategories=rsauce.subcategories
+urlrecip=rsauce.urlreceip
 keys={} #Список подкатегорий
 i=0
 for key in subcategories.keys():
@@ -39,7 +39,7 @@ for key in subcategories.keys():
 def receip(update, context):
     #вызываем адрес рецепта по подкатегории и номеру в массиве
     #по дефолту (категория борщ, 3 строка, 4 столбец, "Жареный борщ")
-    order = proreceip.urlreceip[keys[0]][2][3]
+    order = rsauce.urlreceip[keys[0]][2][3]
     #получаем словарь рецепта по адресу
     receipdata = proreceip.findreceip(order)
 

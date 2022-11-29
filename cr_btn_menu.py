@@ -1,52 +1,92 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, constants
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, ConversationHandler
-import rsauce, time
-from cr_config import restricted
+from proreceip import findreceip
+from random import randint
+from time import sleep
+import rsauce
 
-CHOOSING_CATEGORY, CHOOSING_COIN, CHOOSING_SAUCE, CHOOSING_SOUP = range(4)
-CHOOSING_HOT, CHOOSING_SALAD, CHOOSING_APPETIZER, CHOOSING_BAKERY = range(4, 8)
-CHOOSING_DESSERT, COOKING = range(8, 10)
+CHOOSING_CATEGORY, CATEGORY, COOKING = range(0, 3)
 
-default_keyboard = [
-    [InlineKeyboardButton("Случайные", callback_data="1"),
-    InlineKeyboardButton("Соусы", callback_data="Соусы")],
+buttons = [
+    ["Случайный рецепт", "Соусы", "Бульоны и супы", "Горячие блюда",
+    "Салаты", "Закуски", "Выпечка", "Десерты"],
 
-    [InlineKeyboardButton("Бульоны и супы", callback_data="Бульоны и супы"),
-    InlineKeyboardButton("Горячие блюда", callback_data="4")],
+    ["Домашний майонез", "Подлива", "Салатная заправка", "Соус-дип", "Сладкий соус",
+    "Ягодный соус", "Соус к мясу", "Соус к птице", "Соус к рыбе", "Другие соусы"],
 
-    [InlineKeyboardButton("Салаты", callback_data="5"),
-    InlineKeyboardButton("Закуски", callback_data="6")],
+    ["Бульоны", "Куриный бульон", "Мясной бульон", "Овощной бульон", "Рыбный бульон",
+    "Горячие супы", "Молочный суп", "Рыбный суп", "Борщ", "Окрошка", "Рассольник",
+    "Свекольник", "Солянка", "Суп-лапша", "Суп-пюре", "Другие супы"],
 
-    [InlineKeyboardButton("Выпечка", callback_data="7"),
-    InlineKeyboardButton("Десерты", callback_data="8")]]
-default_markup = InlineKeyboardMarkup(default_keyboard)
+    ["Блюда из мяса", "Блюда из птицы", "Горячие блюда из баранины", "Блюда из рыбы и морепродуктов", "Блюда из фарша", "Блюда из круп",
+    "Блюда из овощей, грибов, бобовых", "Блюда из яиц", "Блюда на гриле", "Горячие блюда в горшочках", "Горячие блюда в казане",
+    "Горячие блюда в микроволновке", "Горячие блюда из бобовых", "Вареники", "Гарнир", "Гарнир из круп"],
 
-sauce_keyboard = [
-    [InlineKeyboardButton("Домашний майонез", callback_data="Домашний майонез"),
-    InlineKeyboardButton("Подлива", callback_data="2")],
+    ["Рыбные салаты", "Салаты из морепродуктов", "Салаты из баранины", "Салаты из ветчины", "Салаты из говядины",
+    "Салаты из индейки", "Салаты из курицы", "Салаты из птицы", "Салаты из мяса", "Салаты из свинины", "Салаты из мясных субпродуктов",
+    "Салаты из субпродуктов птицы", "Салаты из овощей, грибов, сыра", "Салаты из овощей",
+    "Салаты из бобовых", "Салаты из рыбы и морепродуктов"],
 
-    [InlineKeyboardButton("Салатная заправка", callback_data="3"),
-    InlineKeyboardButton("Соус-дип", callback_data="4")],
+    ["Бутерброды", "Горячие закуски", "Грибные закусочные торты", "Закуски из мяса", "Закрытый бутерброд",
+    "Закуски из рыбы и морепродуктов", "Закуски из субпродуктов", "Закуски из овощей", "Закуски из сыра", "Закуски из яиц",
+    "Закуски с грибами", "Закуски с колбасными изделиями", "Закуски с копченостями", "Закусочные кексы, маффины",
+    "Закусочные рулеты", "Закусочные торты"],
 
-    [InlineKeyboardButton("Сладкий соус", callback_data="5"),
-    InlineKeyboardButton("Ягодный соус", callback_data="6")],
+    ["Бисквитное тесто", "Заварное тесто", "Дрожжевое тесто", "Блины", "Булочки",
+    "Блины, оладьи, сырники", "Домашний хлеб", "Закуски из блинов", "Кексы", "Куличи",
+    "Лаваш", "Лепешки", "Оладьи", "Начинка для блинов", "Изделия из теста", "Другие изделия"],
 
-    [InlineKeyboardButton("Соус к мясу", callback_data="7"),
-    InlineKeyboardButton("Соус к птице", callback_data="8")],
+    ["Безе", "Желе", "Бисквитное печенье", "Бисквитный торт", "Вафли", "Гренки",
+    "Десерты без выпечки", "Десертные крема", "Заварной торт", "Медовый торт",
+    "Конфеты", "Мороженое", "Муссы", "Мюсли", "Другое", "Другие десерты"],
+]
 
-    [InlineKeyboardButton("Соус к рыбе", callback_data="9"),
-    InlineKeyboardButton("Другие соусы", callback_data="10")],
-    
-    [InlineKeyboardButton("Главная", callback_data="Main")]]
-sauce_markup = InlineKeyboardMarkup(sauce_keyboard)
+def category_markups(category: str = "default") -> InlineKeyboardMarkup:
+    def algorithm(index: int) -> list:
+        category_keyboard = []
+        if len(buttons[index]) % 2 == 0:
+                for i in range(0, len(buttons[index]), 2):
+                    category_keyboard.append([InlineKeyboardButton(buttons[index][i], callback_data = buttons[index][i]),
+                                InlineKeyboardButton(buttons[index][i+1], callback_data = buttons[index][i+1])])
+                if index != 0:
+                    category_keyboard.append([InlineKeyboardButton("Главная", callback_data="Main")])
+                return category_keyboard
+        else:
+            for i in range(0, len(buttons[index])-1, 2):
+                category_keyboard.append([InlineKeyboardButton(buttons[index][i], callback_data = buttons[index][i]),
+                            InlineKeyboardButton(buttons[index][i+1], callback_data = buttons[index][i+1])])
+            category_keyboard.append([InlineKeyboardButton(buttons[index][len(buttons[index])-1], callback_data = buttons[index][len(buttons[index])-1])])
+            if index != 0:
+                category_keyboard.append([InlineKeyboardButton("Главная", callback_data="Main")])
+            return category_keyboard
+    keyboard = list()
+    match category:
+        case "default":
+            keyboard = algorithm(0)
+        case "Соусы":
+            keyboard = algorithm(1)
+        case "Бульоны и супы":
+            keyboard = algorithm(2)
+        case "Горячие блюда":
+            keyboard = algorithm(3)
+        case "Салаты":
+            keyboard = algorithm(4)
+        case "Закуски":
+            keyboard = algorithm(5)
+        case "Выпечка":
+            keyboard = algorithm(6)
+        case "Десерты":
+            keyboard = algorithm(7)    
+    category_markup = InlineKeyboardMarkup(keyboard)
+    return category_markup
 
-def markups(subcategory) -> list:
+def subcategory_markups(subcategory: str) -> list:
     subcategory_keyboards = []
     for i in range(len(rsauce.subcategories[subcategory])):
         subcategory_keyboard = []
         for j in range(0,len(rsauce.subcategories[subcategory][i])):
             subcategory_keyboard.append([InlineKeyboardButton(rsauce.subcategories[subcategory][i][j],
-                                                    callback_data=rsauce.subcategories[subcategory][i][j])])
+                                                    callback_data=f"start.{subcategory}.{i}.{j}")])
         if i == 0:
             subcategory_keyboard.append([InlineKeyboardButton("Главная", callback_data="Main"),
                                                     InlineKeyboardButton("-->", callback_data="Next")])
@@ -63,191 +103,158 @@ def markups(subcategory) -> list:
         subcategory_markups.append(InlineKeyboardMarkup(subcategory_keyboards[i]))
     return subcategory_markups
 
-soup_keyboard = [
-    [InlineKeyboardButton("Борщ", callback_data="1"),
-    InlineKeyboardButton("Горячие супы", callback_data="2")],
+def recipe_markups(flag: str, step: int) -> list:
+    keyboard = []
+    match flag:
+        case "start" | "start_random":
+            keyboard.append([InlineKeyboardButton("Посмотреть ингредиенты", callback_data = "ingredient")])
+            markup = InlineKeyboardMarkup(keyboard)
+            return markup
+        case "ingredient" | "step":
+            keyboard.append([InlineKeyboardButton(f"Перейти к шагу {step}", callback_data = "step")])
+            markup = InlineKeyboardMarkup(keyboard)
+            return markup
 
-    [InlineKeyboardButton("Бульоны", callback_data="3"),
-    InlineKeyboardButton("Куриный бульон", callback_data="4")],
 
-    [InlineKeyboardButton("Мясной бульон", callback_data="5"),
-    InlineKeyboardButton("Овощной бульон", callback_data="6")],
-
-    [InlineKeyboardButton("Рыбный бульон", callback_data="7"),
-    InlineKeyboardButton("Молочный суп", callback_data="8")],
-
-    [InlineKeyboardButton("Солянка", callback_data="9"),
-    InlineKeyboardButton("Рыбный суп", callback_data="10")],
-    
-    [InlineKeyboardButton("Окрошка", callback_data="11"),
-    InlineKeyboardButton("Рассольник", callback_data="12")],
-
-    [InlineKeyboardButton("Суп-лапша", callback_data="13"),
-    InlineKeyboardButton("Свекольник", callback_data="1")],
-
-    [InlineKeyboardButton("Суп-пюре", callback_data="15"),
-    InlineKeyboardButton("Другие супы", callback_data="16")],
-
-    [InlineKeyboardButton("Главная", callback_data="Main")]]
-soup_markup = InlineKeyboardMarkup(soup_keyboard)
-
-def recipe_info(recipe: dict, step: int) -> list:
-    image, title = recipe['image'], recipe['title']
-    description, ingredients = recipe['description'], recipe['ingredients']
-    steps = list()
-    for s in range(step):
-        steps.append(recipe[f'walkthrough{s+1}'])
-    combined = [image, title, description, ingredients, steps]
-    return combined
 
 async def default(update, _):
-    await update.message.reply_text("Выберите категорию:", reply_markup = default_markup)
+    await update.message.reply_text("Выберите категорию:", reply_markup = category_markups())
     return CHOOSING_CATEGORY
 
 async def choice(update, _):
     query = update.callback_query
     variant = query.data
     await query.answer()
-    match variant:
-        case "Соусы":
-            await query.edit_message_text(text = f"Вы выбрали: {variant}.\nВыберите подкатегорию:",
-                                    reply_markup = sauce_markup)
-            return CHOOSING_SAUCE
-        case "Бульоны и супы":
-            await query.edit_message_text(text = f"Вы выбрали: {variant}.\nВыберите подкатегорию:",
-                                    reply_markup = soup_markup)
-            return CHOOSING_SOUP
-
-cooking_markups = []
+    await query.edit_message_text(text = f"Вы выбрали: {variant}.\nВыберите подкатегорию:",
+                                    reply_markup = category_markups(variant))
+    return CATEGORY
 
 cooking_flag = ""
+current_step = 1
+ingredient_triggered = False
+data = {}
+final_message = "\n\nНа этом всё... Приятного аппетита!"
+hint = "\n\n💡 Подсказка: Используйте /stop чтобы прекратить выполнение рецепта"
+hint_end = "💡 Подсказка: Используйте /begin для открытия каталога рецептов"
 async def cooking(update, context):
     query = update.callback_query
-    recipe = query.data
+    recipe = query.data.split('.')
     await query.answer()
-    # Здесь должна быть функция импорта рецепта с сайта с аргументом recipe_titles[variant].
-    # Возвращает словарь с информацией о рецепте и количестве шагов приготовления.
-    data = recipe_info(rsauce.julie, 5)
-    global cooking_flag
-    global active_sauce_page, active_subcategory, active_variant
-    cooking_flag = recipe
+    global active_page, active_subcategory, active_variant
+    global cooking_flag, current_step, ingredient_triggered, data
+    if recipe[0] == "Случайный рецепт":
+        cooking_flag = "start_random"
+    else:
+        cooking_flag = recipe[0]
     match cooking_flag:
         case "Main":
-            if len(active_subcategory) > 0:
-                if page_reset:
-                    sauce_pages[active_variant] = 0
-                else:
-                    sauce_pages[active_variant] = active_sauce_page
-                active_subcategory.clear()
-                active_variant = ""
-            await query.edit_message_text(text = "Выберите категорию:", reply_markup = default_markup)
+            active_subcategory.clear()
+            active_variant = ""
+            cooking_flag = ""
+            current_step = 1
+            active_page = 0
+            ingredient_triggered = False
+            data.clear()
+            await query.edit_message_text(text = "Выберите категорию:", reply_markup = category_markups())
             return CHOOSING_CATEGORY
         case "Prev":
-            active_sauce_page -= 1
-            mazik = f"Рецепты в данной категории:\nСтраница {active_sauce_page+1} из {len(active_subcategory)}"
-            await query.edit_message_text(text = mazik, reply_markup = active_subcategory[active_sauce_page])
+            active_page -= 1
+            recipes = f"Рецепты в данной категории:\nСтраница {active_page+1} из {len(active_subcategory)}"
+            await query.edit_message_text(text = recipes, reply_markup = active_subcategory[active_page])
             return COOKING
         case "Next":
-            active_sauce_page += 1
-            mazik = f"Рецепты в данной категории:\nСтраница {active_sauce_page+1} из {len(active_subcategory)}"
-            await query.edit_message_text(text = mazik, reply_markup = active_subcategory[active_sauce_page])
+            active_page += 1
+            recipes = f"Рецепты в данной категории:\nСтраница {active_page+1} из {len(active_subcategory)}"
+            await query.edit_message_text(text = recipes, reply_markup = active_subcategory[active_page])
             return COOKING
         case "start":
-            title = data[1]
-            desc = data[2]
-            message = title + "\n\nОписание:\n" + desc
+            receip = rsauce.urlreceip[recipe[1]][int(recipe[2])][int(recipe[3])]
+            data = findreceip(receip)
+            rm = recipe_markups(cooking_flag, current_step)
+            title, description, source = data['title'].split(': '), data['description'], data['resource']
+            print(title[0] + ": " + title[1] + ". Подкатегория: " + recipe[1])
+            message = title[1] + "\n\nОписание:\n" + description + "\n\nИсточник: " + source
             await context.bot.send_photo(chat_id = update.effective_chat.id,
-                                            photo = data[0], caption = message)
-            cooking_flag = "ingredient"
+                                            photo = data['image'], caption = message, reply_markup = rm)
+            return COOKING
+        case "start_random":
+            subcat = rsauce.keys[randint(0, 331)]
+            receip = rsauce.urlreceip[subcat][randint(0, 2)][randint(0, 4)]
+            data = findreceip(receip)
+            rm = recipe_markups(cooking_flag, current_step)
+            title, description, source = data['title'].split(': '), data['description'], data['resource']
+            print(title[0] + ": " + title[1] + ". Подкатегория: " + subcat)
+            message = title[1] + "\n\nОписание:\n" + description + "\n\nИсточник: " + source
+            await context.bot.send_photo(chat_id = update.effective_chat.id,
+                                            photo = data['image'], caption = message, reply_markup = rm)
             return COOKING
         case "ingredient":
-            ingredients = data[3].split("\n")
-            message = "Ингредиенты:\n"
-            for i in range(len(ingredients)):
-                message += f"{i+1}. " + ingredients[i]
-            context.bot.send_message(chat_id = update.effective_chat.id,
-                                    text = message,
-                                    )
-    
-async def coin() -> int:
-    pass
-
-page_reset = False
-
-async def reset_page(update, _):
-    global page_reset
-    if page_reset is False:
-        page_reset = True
-        await update.message.reply_text("✅ Теперь страница подкатегории будет сбрасываться при возвращении в главное меню.")
-    else:
-        page_reset = False
-        await update.message.reply_text("✅ Теперь страница подкатегории будет сохраняться при возвращении в главное меню.")
-
-active_subcategory = list()
-sauce_pages = {
-    "Домашний майонез": 0, "Подлива": 0, "Салатная заправка": 0, "Соус-дип": 0, "Сладкий соус": 0,
-    "Ягодный соус": 0, "Соус к мясу": 0, "Соус к птице": 0, "Соус к рыбе": 0, "Другие соусы": 0
-}
-active_sauce_page = 0
-active_variant = ""
-async def sauce(update, _) -> int:
-    query = update.callback_query
-    variant = query.data
-    await query.answer()
-    global active_sauce_page, active_subcategory, active_variant
-    match variant:
-        case "Main":
-            if len(active_subcategory) > 0:
-                if page_reset:
-                    sauce_pages[active_variant] = 0
-                else:
-                    sauce_pages[active_variant] = active_sauce_page
+            if ingredient_triggered is False:
+                rm = recipe_markups(cooking_flag, current_step)
+                ingredients = data['ingredients'].split("\n")
+                message = "Ингредиенты:\n"
+                for i in range(len(ingredients)):
+                    message += f"{i+1}. " + ingredients[i] + "\n"
+                message += hint
+                await context.bot.send_message(chat_id = update.effective_chat.id,
+                                                text = message, reply_markup = rm)
+                ingredient_triggered = True
+                return COOKING
+            return COOKING
+        case "step":
+            if current_step == len(data) - 5:
+                step_image = data[f"step{current_step}"][0]
+                step_text = f"Шаг {current_step}\n" + data[f"step{current_step}"][1] + final_message
+                await context.bot.send_photo(chat_id = update.effective_chat.id,
+                                                photo = step_image, caption = step_text)
+                sleep(0.5)
+                await context.bot.send_message(chat_id = update.effective_chat.id,
+                                                text = hint_end)
                 active_subcategory.clear()
                 active_variant = ""
-            await query.edit_message_text(text = "Выберите категорию:", reply_markup = default_markup)
-            return CHOOSING_CATEGORY
-        case "Домашний майонез":
-            active_variant = variant
-            active_subcategory = markups(variant)
-            active_sauce_page = sauce_pages[variant]
-            mazik = f"Рецепты в данной категории:\nСтраница {active_sauce_page+1} из {len(active_subcategory)}"
-            await query.edit_message_text(text = mazik, reply_markup = active_subcategory[active_sauce_page])
-            return COOKING
-        case "...": # Остальные подкатегории
-            pass
+                cooking_flag = ""
+                current_step = 1
+                active_page = 0
+                ingredient_triggered = False
+                return ConversationHandler.END
+            else:
+                rm = recipe_markups(cooking_flag, current_step+1)
+                step_image = data[f"step{current_step}"][0]
+                step_text = f"Шаг {current_step}\n" + data[f"step{current_step}"][1]
+                await context.bot.send_photo(chat_id = update.effective_chat.id,
+                                                photo = step_image, caption = step_text, reply_markup = rm)
+                current_step += 1
+                return COOKING
 
-async def soup(update, _) -> int:
+active_subcategory = list()
+active_page = 0
+active_variant = ""
+async def category(update, _) -> int:
     query = update.callback_query
     variant = query.data
     await query.answer()
-
+    global active_page, active_subcategory, active_variant
     match variant:
         case "Main":
-            await query.edit_message_text(text = "Выберите категорию:", reply_markup = default_markup)
+            await query.edit_message_text(text = "Выберите категорию:", reply_markup = category_markups())
             return CHOOSING_CATEGORY
+        case _:
+            active_variant = variant
+            active_subcategory = subcategory_markups(variant)
+            message = f"Рецепты в данной категории:\nСтраница {active_page+1} из {len(active_subcategory)}"
+            await query.edit_message_text(text = message, reply_markup = active_subcategory[active_page])
+            return COOKING
 
-async def hot() -> int:
-    pass
-
-async def salad() -> int:
-    pass
-
-async def appetizer() -> int:
-    pass
-
-async def bakery() -> int:
-    pass
-
-async def dessert() -> int:
-    pass
-
-@restricted
 async def done(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="<< ✅ Dialogue Terminated ✅ >>")
-    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=constants.ChatAction.TYPING)
-    time.sleep(1.5)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="<< ✅ Allocated User Data Disintegrated ✅ >>")
-    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=constants.ChatAction.TYPING)
-    time.sleep(0.5)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="<< ⚠️ Execution Flag Set to False ⚠️ >>")
+    global active_page, active_subcategory, active_variant
+    global cooking_flag, current_step, ingredient_triggered
+    active_subcategory.clear()
+    active_variant = ""
+    cooking_flag = ""
+    current_step = 1
+    active_page = 0
+    ingredient_triggered = False
+    data.clear()
+    message = "✅ Выполнение рецепта прервано\n\n" + hint_end
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
     return ConversationHandler.END

@@ -60,6 +60,7 @@ def listreceip():
     return list, urls
 
 subcategories, urlreceip = listreceip()
+
 #Записать массивы в файл receips.dat
 import pickle
 file=open("receips.dat", "wb")
