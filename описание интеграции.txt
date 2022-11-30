@@ -21,5 +21,8 @@
 файл secret_info содержит строку TOKEN='токен собственно'
 
 библиотеки
-python-telegram-bot 20.0a6
-lxml 4.9.0 (установите файл через pip), beautifulsoup4, requests, pickle
+python-telegram-bot 20.0a6 (интерфейс бота)
+lxml 4.9.0 (установите файл через pip)
+beautifulsoup4 (парсинг, зависит от lxml)
+requests (получение страниц сайта)
+pickle (работа с файлами)
