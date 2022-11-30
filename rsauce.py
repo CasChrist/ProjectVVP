@@ -25,8 +25,26 @@ file = open("receips.dat", "rb")
 subcategories = pickle.load(file)
 urlreceip = pickle.load(file)
 
+j = 0 #индексация для нахождения лишних элементов
+
+l = list() #список для ключей с пустыми значениями
+
+for k in subcategories.keys(): #по ключам перебираем значения, а в значениях ищим пустые элементы
+    while str in subcategories[k]:
+        if subcategories[k][i] == str:
+            del subcategories[k][i]
+            j = -1
+        j += 1
+    if len(subcategories[k]) == 0: #добавляем в список ключи с пустыми значениями
+        l.append(k)
+
+for k in l: #удаление пустых значений по ключам
+    del subcategories[k]
+
+
 keys = {} #Список подкатегорий
 i = 0   #И их количество
 for key in subcategories.keys():
     keys[i] = key
     i = i + 1
+#И ДА, МАКСИМ, ОБРАЩЕНИЕ ТАКОГО ВИДА К ЭЛЕМЕНТАМ ЗНАЧЕНИЙ СЛОВАРЯ ДОПУСТИМО
