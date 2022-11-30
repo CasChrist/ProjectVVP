@@ -10,8 +10,8 @@ def findreceip(order):
         "description":  'ExDesNotFound',
         "resource":      order,
         "ingredients":  'ExIngNotFound', 
-        "step1":        'ExStsNotFound'}
-    #Где: картинка, название, описание, адрес рецепта на сайте, ингредиенты, шаги рецепта (дальше-больше)
+        "step1":        ['./Data/Image404.png', 'ExStsNotFound']}
+    #Где: картинка, название, описание, адрес рецепта на сайте, ингредиенты, шаги рецепта (с картинкой)
 
     #Создаем url
     url=order
@@ -59,39 +59,41 @@ def findreceip(order):
     ingstags = []
     findings=soup.findAll('div', class_='ingredients-bl')
     arrdiv=findings[0]
-    arrli=arrdiv.findAll('li')
+    arrli=arrdiv.findAll('li')  #Поиск полей с текстом ингредиентов
     for data in arrli:
         ingstags.append(data.text)
     i=0
-    for data in ingstags:
-        ingstags[i]=data.translate({ord('\n'):None})
-        while "  " in ingstags[i]:
+    for data in ingstags:   #Преобразование текстов в читаемый вид
+        ingstags[i]=data.translate({ord('\n'):None})    #Убрать лишние переносы
+        while "  " in ingstags[i]:      #Убрать лишние пробелы
             ingstags[i]=ingstags[i].replace("  ", " ")
-        datarec['ingredients']=datarec['ingredients']+ingstags[i]+'\n'
+        datarec['ingredients']=datarec['ingredients']+ingstags[i]+'\n'  #Записать ингредиенты построчно
         i=i+1
 
     #Шаги
-    number=0
-    stepnumber='step0'
-    stepimg='./Data/Image404.png'
-    findsteps=soup.findAll('li', class_='cooking-bl')
-    if not findsteps:
+    number=0    #Номер шага
+    stepnumber='step0'  #Формовщик ключа
+    stepimg='./Data/Image404.png'   #Картинка шага
+    findsteps=soup.findAll('li', class_='cooking-bl')   #Поиск всех шагов
+    if not findsteps:   #В случае верстки через общий блок (исключительный случай)
         finddiv=soup.findAll('div', itemtype="http://schema.org/Recipe")
         articlediv=finddiv[0]
         stepsdiv=articlediv.find('div', class_=None, id=None, itemprop=None)
-        for data in stepsdiv:
+        for data in stepsdiv:   #Перебор компонентов блока
             steptext=data.text
-            stepnumber=stepnumber.replace(str(number), str(number+1))
+            stepnumber=stepnumber.replace(str(number), str(number+1))   #Переключение номера шага
             number=number+1
             datarec[stepnumber]=[stepimg, steptext]
-    else:
+    else:   #Обычный случай пошаговой верстки
         for data in findsteps:
-            if data.find('img').attrs['src']:
+            if data.find('img').attrs['src']:   #Если найдена картинка
                 stepimg=data.find('img').attrs['src']
-            steptext=data.find('p').text
-            stepnumber=stepnumber.replace(str(number), str(number+1))
+            else:
+                stepimg='./Data/Image404.png'
+            steptext=data.find('p').text    #Запись текста
+            stepnumber=stepnumber.replace(str(number), str(number+1))   #Переключение номера
             number=number+1
-            datarec[stepnumber]=[stepimg, steptext]
+            datarec[stepnumber]=[stepimg, steptext]     #Сохранение списка картинка + текст шага
 
     #Возвращает в вызывающую функцию словарь рецепта
     return datarec

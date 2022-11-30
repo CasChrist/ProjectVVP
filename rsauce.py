@@ -26,7 +26,7 @@ subcategories = pickle.load(file)
 urlreceip = pickle.load(file)
 
 keys = {} #Список подкатегорий
-i = 0
+i = 0   #И их количество
 for key in subcategories.keys():
     keys[i] = key
     i = i + 1

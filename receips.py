@@ -15,7 +15,7 @@ def listreceip():
 
     #Поиск имен категорий рецептов
     finddiv=soup.findAll('div', class_='rubrics-bl')    #Найти контейнер со списком категорий
-    arrdiv=finddiv[0]   #I don't know, but it is need
+    arrdiv=finddiv[0]   #Преобразование результатов поиск в список
     for data in arrdiv:     #Просмотр каждого тега
         if data.find('span') is not None:   #Удаление имен глобальных разделов
             spandel=arrdiv.select_one('span')
@@ -33,22 +33,22 @@ def listreceip():
         urls[data.text]=data.attrs['href']  #Указание на адрес локальной подкатегории
 
     #Заполнение массивов имен и адресов для каждой страницы локальной подкатегории
-    n=0
+    n=0     #Показатель статуса работы
     for caturl in urls:
         url=urls[caturl]
         urls[caturl]=[[str, str, str, str, str],
                       [str, str, str, str, str],
                       [str, str, str, str, str]]
-        page=requests.get(url)
-        #проверка получения страницы, 200 = все хорошо
+        page=requests.get(url)      #Получение страницы рецептов для каждой локальной подкатегории
+        #проверка получения страницы, 200 = все хорошо, n-номер страницы (всего на данный момент 332)
         print("Cat ", n, " connect: ", page.status_code)
         n=n+1   #Счетчик выполнения, т.к. оно идет ~5 минут
         soup = BeautifulSoup(page.text, "html.parser")
-        findartc=soup.findAll('article', class_='item-bl')  #Поиск статей с рецептами
+        findartc=soup.findAll('article', class_='item-bl')  #Поиск статей с рецептами в подкатегории
         i=0
         j=0
-        for data in findartc:
-            taga=data.find('h2').find('a')  #Поиск имени конкретного рецепта и его адреса
+        for data in findartc:   #Запись первых 15 рецептов
+            taga=data.find('h2').find('a')  #Поиск имени конкретного рецепта и его url-адреса
             if j==5:    #Запись в двумерный массив 3х5
                 j=0
                 i=i+1
@@ -56,12 +56,13 @@ def listreceip():
             urls[caturl][i][j]=taga.attrs['href']
             j=j+1
 
-    #Возвращает в вызывающую функцию словари имен, адресов
+    #Возвращает словари имен подкатегорий, рецептов, и адресов рецептов
     return list, urls
 
+#Создать и заполнить словари
 subcategories, urlreceip = listreceip()
 
-#Записать массивы в файл receips.dat
+#Записать словари в файл ./Data/receips.dat
 import pickle
 file=open("./Data/receips.dat", "wb")
 pickle.dump(subcategories, file)
