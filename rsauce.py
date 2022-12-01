@@ -21,7 +21,7 @@ julie = {
 
 #Считать словари рецептов из файла receips.dat
 import pickle
-file = open("receips.dat", "rb")
+file = open("./Data/receips.dat", "rb")
 subcategories = pickle.load(file)
 urlreceip = pickle.load(file)
 

@@ -69,6 +69,7 @@ def findreceip(order):
             ingstags[i]=ingstags[i].replace("  ", " ")
         datarec['ingredients']=datarec['ingredients']+ingstags[i]+'\n'  #Записать ингредиенты построчно
         i=i+1
+    datarec['ingredients']=datarec['ingredients'][:-1]
 
     #Шаги
     number=0    #Номер шага
