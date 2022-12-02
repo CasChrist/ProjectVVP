@@ -98,3 +98,34 @@ def findreceip(order):
 
     #Возвращает в вызывающую функцию словарь рецепта
     return datarec
+
+#Считать словари рецептов из файла receips.dat
+import pickle
+file=open("./Data/receips.dat", "rb")
+subcategories=pickle.load(file)
+urlreceip=pickle.load(file)
+
+#Обработка ключей словарей - сократить до нужной длины, удалить пустые
+for key in subcategories.keys():  #Перебор ключей
+    if subcategories[key][0][0]==str:
+        del subcategories[key]    #Удалить пустой ключ
+        del urlreceip[key]
+    else:
+        i=0
+        for data in subcategories[key]:     #Перебор элементов ключа
+            j=0
+            for elem in data:   #Удалить пустые
+                if elem==str:
+                    del subcategories[key][i][j]
+                    del urlreceip[key][i][j]
+                else:
+                    j=j+1   #При удалении элемент стирается
+            if len(data)!=0:
+                i=i+1   #Если строка не пуста, перейти к следующему номеру
+
+#Словарь подкатегорий
+keys={}
+i=0
+for key in subcategories.keys():
+    keys[i]=key
+    i=i+1

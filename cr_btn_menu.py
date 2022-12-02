@@ -3,7 +3,7 @@ from telegram.ext import ContextTypes, ConversationHandler
 from proreceip import findreceip
 from random import randint
 from time import sleep
-import rsauce
+import proreceip
 
 CHOOSING_CATEGORY, CATEGORY, COOKING = range(0, 3)
 
@@ -82,15 +82,15 @@ def category_markups(category: str = "default") -> InlineKeyboardMarkup:
 
 def subcategory_markups(subcategory: str) -> list:
     subcategory_keyboards = []
-    for i in range(len(rsauce.subcategories[subcategory])):
+    for i in range(len(proreceip.subcategories[subcategory])):
         subcategory_keyboard = []
-        for j in range(0,len(rsauce.subcategories[subcategory][i])):
-            subcategory_keyboard.append([InlineKeyboardButton(rsauce.subcategories[subcategory][i][j],
+        for j in range(0,len(proreceip.subcategories[subcategory][i])):
+            subcategory_keyboard.append([InlineKeyboardButton(proreceip.subcategories[subcategory][i][j],
                                                     callback_data=f"start.{subcategory}.{i}.{j}")])
         if i == 0:
             subcategory_keyboard.append([InlineKeyboardButton("Главная", callback_data="Main"),
                                                     InlineKeyboardButton("-->", callback_data="Next")])
-        elif i == len(rsauce.subcategories[subcategory]) - 1:
+        elif i == len(proreceip.subcategories[subcategory]) - 1:
             subcategory_keyboard.append([InlineKeyboardButton("<--", callback_data="Prev"),
                                                     InlineKeyboardButton("Главная", callback_data="Main")])
         else:
@@ -168,7 +168,7 @@ async def cooking(update, context):
             await query.edit_message_text(text = recipes, reply_markup = active_subcategory[active_page])
             return COOKING
         case "start":
-            receip = rsauce.urlreceip[recipe[1]][int(recipe[2])][int(recipe[3])]
+            receip = proreceip.urlreceip[recipe[1]][int(recipe[2])][int(recipe[3])]
             data = findreceip(receip)
             rm = recipe_markups(cooking_flag, current_step)
             title, description, source = data['title'].split(': '), data['description'], data['resource']
@@ -178,8 +178,8 @@ async def cooking(update, context):
                                             photo = data['image'], caption = message, reply_markup = rm)
             return COOKING
         case "start_random":
-            subcat = rsauce.keys[randint(0, 331)]
-            receip = rsauce.urlreceip[subcat][randint(0, 2)][randint(0, 4)]
+            subcat = proreceip.keys[randint(0, 331)]
+            receip = proreceip.urlreceip[subcat][randint(0, 2)][randint(0, 4)]
             data = findreceip(receip)
             rm = recipe_markups(cooking_flag, current_step)
             title, description, source = data['title'].split(': '), data['description'], data['resource']
