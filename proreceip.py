@@ -105,7 +105,7 @@ file=open("./Data/receips.dat", "rb")
 subcategories=pickle.load(file)
 urlreceip=pickle.load(file)
 
-#Обработка ключей словарей - сократить до нужной длины, удалить пустые
+#Модуль очистки словарей - сократить до нужной длины, удалить пустые
 for key in subcategories.keys():  #Перебор ключей
     if subcategories[key][0][0]==str:
         del subcategories[key]    #Удалить пустой ключ
