@@ -1,6 +1,6 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, ConversationHandler
-#    from proreceip import findreceip
+from proreceip import findreceip
 # Функции поиска компонентов рецепта
 from proreceip import findrecdesc, findrecings, findrecstps
 from random import randint
@@ -208,15 +208,18 @@ async def cooking(update, context):
             
             
             # Сохранить выбранный URL в базу данных чатов
-            chatids[update.effective_chat.id]=receip
+            #   chatids[update.effective_chat.id]=receip
             # Имя файла базы данных для записи ./Data/receips.dat
             file=open("./Data/chatids.dat", "wb")
             # Записать данные по чату в файл ./Data/chatids.datX
-            pickle.dump(chatids, file)
+            #   pickle.dump(chatids, file)
             #    # Считывает всю информацию о рецепте в словарь.
             #    data = findreceip(receip)
             # Считывает описание рецепта
-            data = findrecdesc(receip)
+            #   data = findrecdesc(receip)
+            data = findreceip(receip)
+            chatids[update.effective_chat.id]=data
+            pickle.dump(chatids, file)
 
 
 
@@ -239,15 +242,19 @@ async def cooking(update, context):
             
             
             # Сохранить выбранный URL в базу данных чатов
-            chatids[update.effective_chat.id]=receip
+            #   chatids[update.effective_chat.id]=receip
             # Имя файла базы данных для записи ./Data/receips.dat
             file=open("./Data/chatids.dat", "wb")
             # Записать данные по чату в файл ./Data/chatids.datX
-            pickle.dump(chatids, file)
+            #   pickle.dump(chatids, file)
             #    # Считывает всю информацию о рецепте в словарь.
             #    data = findreceip(receip)
             # Считывает описание рецепта
-            data = findrecdesc(receip)
+            #   data = findrecdesc(receip)
+            data = findreceip(receip)
+            chatids[update.effective_chat.id]=data
+            pickle.dump(chatids, file)
+
 
 
 
@@ -275,7 +282,8 @@ async def cooking(update, context):
 
                 #    ingredients = data['ingredients'].split("\n")
                 # Получает ингредиенты по адресу
-                ingredients = findrecings(receip)['ingredients'].split("\n")
+                #   ingredients = findrecings(receip)['ingredients'].split("\n")
+                ingredients = chatids[update.effective_chat.id]['ingredients'].split("\n")
 
 
 
@@ -285,15 +293,18 @@ async def cooking(update, context):
                 message += HINT
                 await context.bot.send_message(chat_id = update.effective_chat.id,
                                                 text = message, reply_markup = rm)
-                ingredient_triggered = True
+                #   ingredient_triggered = True
                 return COOKING
             return COOKING
         # Выводит пользователю шаги выполнения по одному.
         case "step":
             # Сброс переменных на последнем шаге и завершение диалога.
-            if current_step == len(data) - 5:
-                step_image = data[f"step{current_step}"][0]
-                step_text = f"Шаг {current_step}\n" + data[f"step{current_step}"][1] + FINAL_MESSAGE
+            current_step = chatids[update.effective_chat.id][0]
+            if current_step == len(data) - 6:
+                #   step_image = data[f"step{current_step}"][0]
+                step_image = chatids[update.effective_chat.id][f"step{current_step}"][0]
+                #   step_text = f"Шаг {current_step}\n" + data[f"step{current_step}"][1] + FINAL_MESSAGE
+                step_text = f"Шаг {current_step}\n" + chatids[update.effective_chat.id][f"step{current_step}"][1] + FINAL_MESSAGE
                 await context.bot.send_photo(chat_id = update.effective_chat.id,
                                                 photo = step_image, caption = step_text)
                 sleep(0.5)
@@ -308,11 +319,21 @@ async def cooking(update, context):
                 return ConversationHandler.END
             else:
                 rm = recipe_markups(cooking_flag, current_step+1)
-                step_image = data[f"step{current_step}"][0]
-                step_text = f"Шаг {current_step}\n" + data[f"step{current_step}"][1]
+                # Импортирует URL рецепта по записи в базе данных чатов
+                #   receip = chatids[update.effective_chat.id]
+                # Получает шаги по адресу
+                #   step_image = findrecstps(receip)[f"step{current_step}"][0]
+                step_image = chatids[update.effective_chat.id][f"step{current_step}"][0]
+                #step_image = data[f"step{current_step}"][0]
+                #step_text = f"Шаг {current_step}\n" + data[f"step{current_step}"][1]
+                #   step_text = f"Шаг {current_step}\n" + findrecstps(receip)[f"step{current_step}"][1]
+                step_text = f"Шаг {current_step}\n" + chatids[update.effective_chat.id][f"step{current_step}"][1]
                 await context.bot.send_photo(chat_id = update.effective_chat.id,
                                                 photo = step_image, caption = step_text, reply_markup = rm)
-                current_step += 1
+                chatids[update.effective_chat.id][0] += 1
+                file=open("./Data/chatids.dat", "wb")
+                chatids[update.effective_chat.id]=data
+                pickle.dump(chatids, file)
                 return COOKING
 
 # Выводит список подкатегорий. Игнорируется, если было выбрано "Случайный рецепт".
