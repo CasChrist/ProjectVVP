@@ -1,9 +1,17 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, ConversationHandler
-from proreceip import findreceip
+#    from proreceip import findreceip
+# Функции поиска компонентов рецепта
+from proreceip import findrecdesc, findrecings, findrecstps
 from random import randint
 from time import sleep
+# Содержит словари названий и адресов рецептов
 import proreceip
+# Считать из файла базу данных чатов
+import pickle
+file=open("./Data/chatids.dat", "rb")
+chatids=pickle.load(file)
+
 
 # Возвращаемые значения асинхронных функций, которые передаются в ConversationHandler.
 CHOOSING_CATEGORY, CATEGORY, COOKING = range(0, 3)
@@ -196,8 +204,22 @@ async def cooking(update, context):
         case "start":
             # Импортирует URL рецепта из словаря 'urlreceip'. Аргументы: подкатегория, страница рецепта, номер рецепта на странице.
             receip = proreceip.urlreceip[recipe[1]][int(recipe[2])][int(recipe[3])]
-            # Считывает всю информацию о рецепте в словарь.
-            data = findreceip(receip)
+            
+            
+            
+            # Сохранить выбранный URL в базу данных чатов
+            chatids[update.effective_chat.id]=receip
+            # Имя файла базы данных для записи ./Data/receips.dat
+            file=open("./Data/chatids.dat", "wb")
+            # Записать данные по чату в файл ./Data/chatids.datX
+            pickle.dump(chatids, file)
+            #    # Считывает всю информацию о рецепте в словарь.
+            #    data = findreceip(receip)
+            # Считывает описание рецепта
+            data = findrecdesc(receip)
+
+
+
             # Создаёт клавиатуру в зависимости от флага и номера шага.
             rm = recipe_markups(cooking_flag, current_step)
             title, description, source = data['title'].split(': '), data['description'], data['resource']
@@ -213,7 +235,22 @@ async def cooking(update, context):
             # Аналогично 'start', только значения подбираются рандомно.
             subcat = proreceip.keys[randint(0, 331)]
             receip = proreceip.urlreceip[subcat][randint(0, 2)][randint(0, 4)]
-            data = findreceip(receip)
+            
+            
+            
+            # Сохранить выбранный URL в базу данных чатов
+            chatids[update.effective_chat.id]=receip
+            # Имя файла базы данных для записи ./Data/receips.dat
+            file=open("./Data/chatids.dat", "wb")
+            # Записать данные по чату в файл ./Data/chatids.datX
+            pickle.dump(chatids, file)
+            #    # Считывает всю информацию о рецепте в словарь.
+            #    data = findreceip(receip)
+            # Считывает описание рецепта
+            data = findrecdesc(receip)
+
+
+
             rm = recipe_markups(cooking_flag, current_step)
             title, description, source = data['title'].split(': '), data['description'], data['resource']
             print(title[0] + ": " + title[1] + ". Подкатегория: " + subcat)
@@ -223,9 +260,25 @@ async def cooking(update, context):
             return COOKING
         # Выводит пользователю список ингредиентов. Блокирует повторное нажатие кнопки "Посмотреть ингредиенты".
         case "ingredient":
+
+
+
+            # Импортирует URL рецепта по записи в базе данных чатов
+            receip = chatids[update.effective_chat.id]
+
+
+
             if ingredient_triggered is False:
                 rm = recipe_markups(cooking_flag, current_step)
-                ingredients = data['ingredients'].split("\n")
+
+
+
+                #    ingredients = data['ingredients'].split("\n")
+                # Получает ингредиенты по адресу
+                ingredients = findrecings(receip)['ingredients'].split("\n")
+
+
+
                 message = "Ингредиенты:\n"
                 for i in range(len(ingredients)):
                     message += f"{i+1}. " + ingredients[i] + "\n"
