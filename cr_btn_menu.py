@@ -299,12 +299,13 @@ async def cooking(update, context):
         # Выводит пользователю шаги выполнения по одному.
         case "step":
             # Сброс переменных на последнем шаге и завершение диалога.
-            current_step = chatids[update.effective_chat.id][0]
-            if current_step == len(data) - 6:
+            current_step_local = chatids[update.effective_chat.id]['current_step']
+            
+            if current_step_local == len(chatids[update.effective_chat.id]) - 6:
                 #   step_image = data[f"step{current_step}"][0]
-                step_image = chatids[update.effective_chat.id][f"step{current_step}"][0]
+                step_image = chatids[update.effective_chat.id][f"step{current_step_local}"][0]
                 #   step_text = f"Шаг {current_step}\n" + data[f"step{current_step}"][1] + FINAL_MESSAGE
-                step_text = f"Шаг {current_step}\n" + chatids[update.effective_chat.id][f"step{current_step}"][1] + FINAL_MESSAGE
+                step_text = f"Шаг {current_step_local}\n" + chatids[update.effective_chat.id][f"step{current_step_local}"][1] + FINAL_MESSAGE
                 await context.bot.send_photo(chat_id = update.effective_chat.id,
                                                 photo = step_image, caption = step_text)
                 sleep(0.5)
@@ -318,21 +319,20 @@ async def cooking(update, context):
                 ingredient_triggered = False
                 return ConversationHandler.END
             else:
-                rm = recipe_markups(cooking_flag, current_step+1)
+                rm = recipe_markups(cooking_flag, current_step_local+1)
                 # Импортирует URL рецепта по записи в базе данных чатов
                 #   receip = chatids[update.effective_chat.id]
                 # Получает шаги по адресу
                 #   step_image = findrecstps(receip)[f"step{current_step}"][0]
-                step_image = chatids[update.effective_chat.id][f"step{current_step}"][0]
+                step_image = chatids[update.effective_chat.id][f"step{current_step_local}"][0]
                 #step_image = data[f"step{current_step}"][0]
                 #step_text = f"Шаг {current_step}\n" + data[f"step{current_step}"][1]
                 #   step_text = f"Шаг {current_step}\n" + findrecstps(receip)[f"step{current_step}"][1]
-                step_text = f"Шаг {current_step}\n" + chatids[update.effective_chat.id][f"step{current_step}"][1]
+                step_text = f"Шаг {current_step_local}\n" + chatids[update.effective_chat.id][f"step{current_step_local}"][1]
                 await context.bot.send_photo(chat_id = update.effective_chat.id,
                                                 photo = step_image, caption = step_text, reply_markup = rm)
-                chatids[update.effective_chat.id][0] += 1
+                chatids[update.effective_chat.id]['current_step'] += 1
                 file=open("./Data/chatids.dat", "wb")
-                chatids[update.effective_chat.id]=data
                 pickle.dump(chatids, file)
                 return COOKING
 
