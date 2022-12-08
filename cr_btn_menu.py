@@ -1,17 +1,14 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, ConversationHandler
 from proreceip import findreceip
-# Функции поиска компонентов рецепта
-from proreceip import findrecdesc, findrecings, findrecstps
 from random import randint
 from time import sleep
 # Содержит словари названий и адресов рецептов
 import proreceip
-# Считать из файла базу данных чатов
+# Считать из файла базу данных открытых рецептов в чатах
 import pickle
-file=open("./Data/chatids.dat", "rb")
-chatids=pickle.load(file)
-
+databaseinit=open("./Data/chatids.dat", "rb")
+chatids=pickle.load(databaseinit)
 
 # Возвращаемые значения асинхронных функций, которые передаются в ConversationHandler.
 CHOOSING_CATEGORY, CATEGORY, COOKING = range(0, 3)
@@ -122,7 +119,7 @@ def subcategory_markups(subcategory: str) -> list:
     return subcategory_markups
 
 # Создаёт кнопки для самого рецепта. Без этой функции не получится посмотреть ингредиенты и шаги приготовления.
-def recipe_markups(flag: str, step: int) -> list:
+def recipe_markups(flag: str, step: int = None, length: int = None) -> list:
     keyboard = []
     match flag:
         case "start" | "start_random":
@@ -130,7 +127,7 @@ def recipe_markups(flag: str, step: int) -> list:
             markup = InlineKeyboardMarkup(keyboard)
             return markup
         case "ingredient" | "step":
-            keyboard.append([InlineKeyboardButton(f"Перейти к шагу {step}", callback_data = "step")])
+            keyboard.append([InlineKeyboardButton(f"Перейти к шагу {step} из {length}", callback_data = "step")])
             markup = InlineKeyboardMarkup(keyboard)
             return markup
 
@@ -202,115 +199,88 @@ async def cooking(update, context):
             return COOKING
         # Срабатывает при выборе рецепта.
         case "start":
+            rm = recipe_markups(cooking_flag)
             # Импортирует URL рецепта из словаря 'urlreceip'. Аргументы: подкатегория, страница рецепта, номер рецепта на странице.
             receip = proreceip.urlreceip[recipe[1]][int(recipe[2])][int(recipe[3])]
-            
-            
-            
-            # Сохранить выбранный URL в базу данных чатов
-            #   chatids[update.effective_chat.id]=receip
-            # Имя файла базы данных для записи ./Data/receips.dat
-            file=open("./Data/chatids.dat", "wb")
-            # Записать данные по чату в файл ./Data/chatids.datX
-            #   pickle.dump(chatids, file)
-            #    # Считывает всю информацию о рецепте в словарь.
-            #    data = findreceip(receip)
-            # Считывает описание рецепта
-            #   data = findrecdesc(receip)
+            # Скачать рецепт с сайта
             data = findreceip(receip)
+            # Сохранить открытый рецепт в базу данных
             chatids[update.effective_chat.id]=data
+            # Записать данные по чату в файл ./Data/chatids.dat
+            file=open("./Data/chatids.dat", "wb")
             pickle.dump(chatids, file)
-
-
-
-            # Создаёт клавиатуру в зависимости от флага и номера шага.
-            rm = recipe_markups(cooking_flag, current_step)
-            title, description, source = data['title'].split(': '), data['description'], data['resource']
+            # Создать сообщение с описанием рецепта
+            title       = chatids[update.effective_chat.id]['title'].split(': ')
+            description = chatids[update.effective_chat.id]['description']
+            source      = chatids[update.effective_chat.id]['resource']
+            message = title[1] + "\n\nОписание:\n" + description + "\n\nИсточник: " + source
             # Вывод в консоль названия выбранных рецепта и подкатегории (для отладки).
             print(title[0] + ": " + title[1] + ". Подкатегория: " + recipe[1])
-            message = title[1] + "\n\nОписание:\n" + description + "\n\nИсточник: " + source
             # Вывод пользователю картинки готового блюда, названия и краткого описания, а также ссылки на сайт.
             await context.bot.send_photo(chat_id = update.effective_chat.id,
-                                            photo = data['image'], caption = message, reply_markup = rm)
+                                         photo = chatids[update.effective_chat.id]['image'],
+                                         caption = message,
+                                         reply_markup = rm)
             return COOKING
         # Срабатывает при нажатии "Случайный рецепт"
         case "start_random":
+            rm = recipe_markups(cooking_flag)
             # Аналогично 'start', только значения подбираются рандомно.
             subcat = proreceip.keys[randint(0, 331)]
             receip = proreceip.urlreceip[subcat][randint(0, 2)][randint(0, 4)]
-            
-            
-            
-            # Сохранить выбранный URL в базу данных чатов
-            #   chatids[update.effective_chat.id]=receip
-            # Имя файла базы данных для записи ./Data/receips.dat
-            file=open("./Data/chatids.dat", "wb")
-            # Записать данные по чату в файл ./Data/chatids.datX
-            #   pickle.dump(chatids, file)
-            #    # Считывает всю информацию о рецепте в словарь.
-            #    data = findreceip(receip)
-            # Считывает описание рецепта
-            #   data = findrecdesc(receip)
+            # Скачать рецепт с сайта
             data = findreceip(receip)
+            # Сохранить открытый рецепт в базу данных
             chatids[update.effective_chat.id]=data
+            # Записать данные по чату в файл ./Data/chatids.dat
+            file=open("./Data/chatids.dat", "wb")
             pickle.dump(chatids, file)
-
-
-
-
-            rm = recipe_markups(cooking_flag, current_step)
-            title, description, source = data['title'].split(': '), data['description'], data['resource']
-            print(title[0] + ": " + title[1] + ". Подкатегория: " + subcat)
+            # Создать сообщение с описанием рецепта
+            title       = chatids[update.effective_chat.id]['title'].split(': ')
+            description = chatids[update.effective_chat.id]['description']
+            source      = chatids[update.effective_chat.id]['resource']
             message = title[1] + "\n\nОписание:\n" + description + "\n\nИсточник: " + source
+            # Вывод в консоль названия выбранных рецепта и подкатегории (для отладки).
+            print(title[0] + ": " + title[1] + ". Подкатегория: " + subcat)
             await context.bot.send_photo(chat_id = update.effective_chat.id,
-                                            photo = data['image'], caption = message, reply_markup = rm)
+                                         photo = chatids[update.effective_chat.id]['image'],
+                                         caption = message,
+                                         reply_markup = rm)
             return COOKING
         # Выводит пользователю список ингредиентов. Блокирует повторное нажатие кнопки "Посмотреть ингредиенты".
         case "ingredient":
-
-
-
-            # Импортирует URL рецепта по записи в базе данных чатов
-            receip = chatids[update.effective_chat.id]
-
-
-
             if ingredient_triggered is False:
-                rm = recipe_markups(cooking_flag, current_step)
-
-
-
-                #    ingredients = data['ingredients'].split("\n")
-                # Получает ингредиенты по адресу
-                #   ingredients = findrecings(receip)['ingredients'].split("\n")
+                rm = recipe_markups(cooking_flag, current_step, len(chatids[update.effective_chat.id])-6)
+                # Получить ингредиенты из базы данных по id чата
                 ingredients = chatids[update.effective_chat.id]['ingredients'].split("\n")
-
-
-
+                # Создать сообщение с ингредиентами
                 message = "Ингредиенты:\n"
                 for i in range(len(ingredients)):
                     message += f"{i+1}. " + ingredients[i] + "\n"
                 message += HINT
                 await context.bot.send_message(chat_id = update.effective_chat.id,
-                                                text = message, reply_markup = rm)
-                #   ingredient_triggered = True
+                                                text = message,
+                                                reply_markup = rm)
+                # Блокировка повторного нажатия на ингредиенты 
+                # В текущем режиме влияет на работу кнопки у всех пользователей
+                # Нужно просто удалять эту кнопку, чтобы не было вопроса к интерфейсу
+                # ingredient_triggered = True
                 return COOKING
             return COOKING
         # Выводит пользователю шаги выполнения по одному.
         case "step":
-            # Сброс переменных на последнем шаге и завершение диалога.
+            # Загрузка из базы данных номера текущего шага этого пользователя
             current_step_local = chatids[update.effective_chat.id]['current_step']
-            
+            # Сброс переменных на последнем шаге и завершение диалога.
             if current_step_local == len(chatids[update.effective_chat.id]) - 6:
-                #   step_image = data[f"step{current_step}"][0]
                 step_image = chatids[update.effective_chat.id][f"step{current_step_local}"][0]
-                #   step_text = f"Шаг {current_step}\n" + data[f"step{current_step}"][1] + FINAL_MESSAGE
                 step_text = f"Шаг {current_step_local}\n" + chatids[update.effective_chat.id][f"step{current_step_local}"][1] + FINAL_MESSAGE
                 await context.bot.send_photo(chat_id = update.effective_chat.id,
-                                                photo = step_image, caption = step_text)
+                                             photo = step_image,
+                                             caption = step_text)
                 sleep(0.5)
                 await context.bot.send_message(chat_id = update.effective_chat.id,
-                                                text = HINT_END)
+                                               text = HINT_END)
                 active_subcategory.clear()
                 active_variant = ""
                 cooking_flag = ""
@@ -319,18 +289,15 @@ async def cooking(update, context):
                 ingredient_triggered = False
                 return ConversationHandler.END
             else:
-                rm = recipe_markups(cooking_flag, current_step_local+1)
-                # Импортирует URL рецепта по записи в базе данных чатов
-                #   receip = chatids[update.effective_chat.id]
-                # Получает шаги по адресу
-                #   step_image = findrecstps(receip)[f"step{current_step}"][0]
+                rm = recipe_markups(cooking_flag, current_step_local+1, len(chatids[update.effective_chat.id])-6)
+                # Получает шаги по id чата
                 step_image = chatids[update.effective_chat.id][f"step{current_step_local}"][0]
-                #step_image = data[f"step{current_step}"][0]
-                #step_text = f"Шаг {current_step}\n" + data[f"step{current_step}"][1]
-                #   step_text = f"Шаг {current_step}\n" + findrecstps(receip)[f"step{current_step}"][1]
                 step_text = f"Шаг {current_step_local}\n" + chatids[update.effective_chat.id][f"step{current_step_local}"][1]
                 await context.bot.send_photo(chat_id = update.effective_chat.id,
-                                                photo = step_image, caption = step_text, reply_markup = rm)
+                                             photo = step_image,
+                                             caption = step_text,
+                                             reply_markup = rm)
+                # Увеличить счетчик и записать в базу данных
                 chatids[update.effective_chat.id]['current_step'] += 1
                 file=open("./Data/chatids.dat", "wb")
                 pickle.dump(chatids, file)
