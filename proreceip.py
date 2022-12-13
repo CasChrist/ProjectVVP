@@ -77,7 +77,7 @@ def findreceip(order):
     stepnumber='step0'  #Формовщик ключа
     stepimg='./Data/Image404.png'   #Картинка шага
     findsteps=soup.findAll('li', class_='cooking-bl')   #Поиск всех шагов
-    if not findsteps:   #В случае верстки через общий блок (исключительный случай)
+    if not findsteps:   #В случае верстки через общий блок
         finddiv=soup.findAll('div', itemtype="http://schema.org/Recipe")
         articlediv=finddiv[0]
         stepsdiv=articlediv.find('div', class_=None, id=None, itemprop=None)
@@ -86,7 +86,7 @@ def findreceip(order):
             stepnumber=stepnumber.replace(str(number), str(number+1))   #Переключение номера шага
             number=number+1
             datarec[stepnumber]=[stepimg, steptext]
-    else:   #Обычный случай пошаговой верстки
+    else:   #Случай верстки через теги
         for data in findsteps:
             if data.find('img').attrs['src']:   #Если найдена картинка
                 stepimg=data.find('img').attrs['src']
@@ -103,41 +103,55 @@ def findreceip(order):
 #Считать словари рецептов из файла receips.dat
 import pickle
 file=open("./Data/receips.dat", "rb")
-subcategories=pickle.load(file)
-urlreceip=pickle.load(file)
+#subcategories=pickle.load(file)
+#urlreceip=pickle.load(file)
+loadsubcategories=pickle.load(file)
+loadurlreceip=pickle.load(file)
 
 #Модуль очистки словарей - сократить до нужной длины, удалить пустые
 #Удаление пустых ключей
 empty_keys = []
-for key in subcategories.keys():
-    if subcategories[key][0][0]==str:
+for key in loadsubcategories.keys():
+    if loadsubcategories[key][0][0]==str:
         empty_keys.append(key)
 for key in empty_keys:
-    del subcategories[key]
-    del urlreceip[key]
+    del loadsubcategories[key]
+    del loadurlreceip[key]
 #Перебор ключей, удаление пустых значений
-for key in subcategories.keys():
+for key in loadsubcategories.keys():
     n=3
     i=0
     while i<n:  #Перебор страниц ключа
-        data=subcategories[key][i]
+        data=loadsubcategories[key][i]
         m=5   #Перебор элементов страницы
         j=0
         while j<m:
             if data[j]==str:   #Удалить пустой элемент
                 m=m-1   #Количество элементов на странице уменьшилось
-                del subcategories[key][i][j]
-                del urlreceip[key][i][j]
+                del loadsubcategories[key][i][j]
+                del loadurlreceip[key][i][j]
             else:   #Перейти к следующему элементу
                 j=j+1
         if len(data)==0:    #Если страница пуста, удалить ее
             n=n-1   #Количество страниц уменьшилось
-            del subcategories[key][i]
-            del urlreceip[key][i]
+            del loadsubcategories[key][i]
+            del loadurlreceip[key][i]
         else:   #Перейти к следующей странице
             i=i+1
+#Сокращение длины названий подкатегорий и запись в словари
+subcategories={}
+urlreceip={}
+for key in loadsubcategories.keys():
+    newkey=key
+    newkey=newkey.replace("закусочные ", "")
+    newkey=newkey.replace("Блюда из", "Из")
+    newkey=newkey.replace("Горячие блюда", "Горячее")
+    newkey=newkey.replace("Другие м", "М")
+    newkey=newkey.replace(" в мультиварке", "")
+    subcategories[newkey]=loadsubcategories[key]
+    urlreceip[newkey]=loadurlreceip[key]
 
-#Словарь подкатегорий
+#Словарь подкатегорий по номерам
 keys={}
 i=0
 for key in subcategories.keys():
