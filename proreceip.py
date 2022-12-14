@@ -80,7 +80,7 @@ def findreceip(order):
         articlediv=finddiv[0]
         stepsdiv=articlediv.find('div', class_=None, id=None, itemprop=None)
         stepstext=stepsdiv.text.split("\n\r\n")
-        #Очистка рекламы
+        #Компоновка рекламы
         k=0
         for data in stepstext:
             if data.find("Этот рецепт - участник акции") is not -1:
