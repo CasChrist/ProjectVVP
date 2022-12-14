@@ -75,21 +75,31 @@ def findreceip(order):
     stepnumber='step0'  #Формовщик ключа
     stepimg=None   #Картинка шага
     findsteps=soup.findAll('li', class_='cooking-bl')   #Поиск всех шагов
+
     if not findsteps:   #В случае верстки через общий блок
         finddiv=soup.findAll('div', itemtype="http://schema.org/Recipe")
         articlediv=finddiv[0]
         stepsdiv=articlediv.find('div', class_=None, id=None, itemprop=None)
+        #Разделить блок на шаги по картинкам
         stepstext=stepsdiv.text.split("\n\r\n")
+        #Удалить пустые сплиты
+        k=0
+        for data in stepstext:
+            if data == '':
+                stepstext.pop(k)
+            k+=1
         #Компоновка рекламы
         k=0
         for data in stepstext:
-            if data.find("Этот рецепт - участник акции") is not -1:
+            if data.find("Этот рецепт - участник акции") != -1:
                 stepstext[k-1]+='\n'+stepstext.pop(k)
             k+=1
+        #Запись картинок
         stepsimgs=[]
         for data in stepsdiv.findAll('div'):
             stepsimgs.append(data.find('img').attrs['src'])
-        for data in stepstext:  #Перебор компонентов блока  
+        #Сборка и сохранение шагов
+        for data in stepstext:  
             steptext=data
             if number<len(stepsimgs):
                 stepimg=stepsimgs[number]
@@ -98,16 +108,22 @@ def findreceip(order):
             stepnumber=stepnumber.replace(str(number), str(number+1))   #Переключение номера шага
             number=number+1
             datarec[stepnumber]=[stepimg, steptext]
+
     else:   #Случай верстки через теги
+        #Просмотр тегов шагов
         for data in findsteps:
-            if data.find('img'):   #Если найдена картинка
+            #Запись картинки
+            if data.find('img'):
                 stepimg=data.find('img').attrs['src']
             else:
                 stepimg=None
-            steptext=data.find('p').text    #Запись текста
-            stepnumber=stepnumber.replace(str(number), str(number+1))   #Переключение номера
+            #Запись текста
+            steptext=data.find('p').text
+            #Сохранение шагов
+            stepnumber=stepnumber.replace(str(number), str(number+1))
             number=number+1
-            datarec[stepnumber]=[stepimg, steptext]     #Сохранение списка картинка + текст шага
+            datarec[stepnumber]=[stepimg, steptext]
+            
     #Возвращает в вызывающую функцию словарь рецепта
     return datarec
 

@@ -203,10 +203,21 @@ async def cooking(update, context):
             print(title[0] + ": " + title[1] + ". Подкатегория: " + recipe[1])
             # Вывод пользователю картинки готового блюда, названия и краткого описания, а также ссылки на сайт.
             if chatids[update.effective_chat.id]['image'] is not None:
-                await context.bot.send_photo(chat_id = update.effective_chat.id,
-                                             photo = chatids[update.effective_chat.id]['image'],
-                                             caption = message,
-                                             reply_markup = rm)
+                # Если описание рецепта слишком длинное, разбить на два сообщения
+                if len(message)>1000:
+                    text=message[1000:]
+                    message=message[:1000]
+                    await context.bot.send_photo(chat_id = update.effective_chat.id,
+                                                 photo = chatids[update.effective_chat.id]['image'],
+                                                 caption = message)
+                    await context.bot.send_message( chat_id = update.effective_chat.id,
+                                                    text = text,
+                                                    reply_markup = rm)
+                else:
+                    await context.bot.send_photo(chat_id = update.effective_chat.id,
+                                                 photo = chatids[update.effective_chat.id]['image'],
+                                                 caption = message,
+                                                 reply_markup = rm)
             else:  #Если в описании рецепта нет картинки
                 await context.bot.send_message( chat_id = update.effective_chat.id,
                                                 text = message,
@@ -230,10 +241,21 @@ async def cooking(update, context):
             # Вывод в консоль названия выбранных рецепта и подкатегории (для отладки).
             print(title[0] + ": " + title[1] + ". Подкатегория: " + subcat)
             if chatids[update.effective_chat.id]['image'] is not None:
-                await context.bot.send_photo(chat_id = update.effective_chat.id,
-                                             photo = chatids[update.effective_chat.id]['image'],
-                                             caption = message,
-                                             reply_markup = rm)
+                # Если описание рецепта слишком длинное, разбить на два сообщения
+                if len(message)>1000:
+                    text=message[1000:]
+                    message=message[:1000]
+                    await context.bot.send_photo(chat_id = update.effective_chat.id,
+                                                 photo = chatids[update.effective_chat.id]['image'],
+                                                 caption = message)
+                    await context.bot.send_message( chat_id = update.effective_chat.id,
+                                                    text = text,
+                                                    reply_markup = rm)
+                else:
+                    await context.bot.send_photo(chat_id = update.effective_chat.id,
+                                                 photo = chatids[update.effective_chat.id]['image'],
+                                                 caption = message,
+                                                 reply_markup = rm)
             else:
                 await context.bot.send_message( chat_id = update.effective_chat.id,
                                                 text = message,
@@ -268,9 +290,19 @@ async def cooking(update, context):
                 step_image = chatids[update.effective_chat.id][f"step{current_step_local}"][0]
                 step_text = f"Шаг {current_step_local}\n" + chatids[update.effective_chat.id][f"step{current_step_local}"][1] + FINAL_MESSAGE
                 if step_image is not None:
-                    await context.bot.send_photo(   chat_id = update.effective_chat.id,
-                                                    photo = step_image,
-                                                    caption = step_text)
+                    # Если описание шага слишком длинное, разбить на два сообщения
+                    if len(step_text)>1000:
+                        text=step_text[1000:]
+                        step_text=step_text[:1000]
+                        await context.bot.send_photo(   chat_id = update.effective_chat.id,
+                                                        photo = step_image,
+                                                        caption = step_text)
+                        await context.bot.send_message( chat_id = update.effective_chat.id,
+                                                        text = text)
+                    else:
+                        await context.bot.send_photo(   chat_id = update.effective_chat.id,
+                                                        photo = step_image,
+                                                        caption = step_text)
                 else:
                     await context.bot.send_message( chat_id = update.effective_chat.id,
                                                     text = step_text)
@@ -290,10 +322,21 @@ async def cooking(update, context):
                 step_image = chatids[update.effective_chat.id][f"step{current_step_local}"][0]
                 step_text = f"Шаг {current_step_local}\n" + chatids[update.effective_chat.id][f"step{current_step_local}"][1]
                 if step_image is not None:
-                    await context.bot.send_photo(   chat_id = update.effective_chat.id,
-                                                    photo = step_image,
-                                                    caption = step_text,
-                                                    reply_markup = rm)
+                    # Если описание шага слишком длинное, разбить на два сообщения
+                    if len(step_text)>1000:
+                        text=step_text[1000:]
+                        step_text=step_text[:1000]
+                        await context.bot.send_photo(   chat_id = update.effective_chat.id,
+                                                        photo = step_image,
+                                                        caption = step_text)
+                        await context.bot.send_message( chat_id = update.effective_chat.id,
+                                                        text = text,
+                                                        reply_markup = rm)
+                    else:
+                        await context.bot.send_photo(   chat_id = update.effective_chat.id,
+                                                        photo = step_image,
+                                                        caption = step_text,
+                                                        reply_markup = rm)
                 else:
                     await context.bot.send_message( chat_id = update.effective_chat.id,
                                                     text = step_text,
