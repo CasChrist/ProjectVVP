@@ -6,20 +6,16 @@ def findreceip(order):
     #Словарь рецепта
     datarec={
         "current_step": 1,
-        "image":        './Data/Image404.png',
+        "image":        None,
         "title":        'ExTitNotFound',
         "description":  'ExDesNotFound',
         "resource":      order,
         "ingredients":  'ExIngNotFound', 
-        "step1":        ['./Data/Image404.png', 'ExStsNotFound']}
+        "step1":        [None, 'ExStsNotFound']}
     #Где: картинка, название, описание, адрес рецепта на сайте, ингредиенты, шаги рецепта (с картинкой)
 
     #Создаем url
     url=order
-    #Если случайно запрошен пустой рецепт, то вернуть дефолтный словарь
-    if url==str:
-        datarec["resource"]='UNKNOWN URL'
-        return datarec
 
     #Здесь считывание html-страницы
     page = requests.get(url)
@@ -31,17 +27,19 @@ def findreceip(order):
     #Картинка
     image = []
     findimgs=soup.findAll('img', itemprop='image')
-    image=findimgs[0].attrs['src']
-    datarec["image"]=image
+    if findimgs:    #Если изображение есть, иначе без него
+        image=findimgs[0].attrs['src']
+        datarec["image"]=image
     
     #Название
     title = []
-        #На случай если нужно использовать другое поле
-        #findtitle=soup.findAll('h1', itemprop='name')
-        #for data in findtitle:
-        #    title.append(data.text)
     title=findimgs[0].attrs['title']
-    datarec["title"] = title
+    if title:
+        datarec["title"] = title
+    else:
+        findtitle=soup.findAll('h1', itemprop='name')
+        for data in findtitle:
+            title.append(data.text)
     
     #Описание
     description = []
@@ -75,7 +73,7 @@ def findreceip(order):
     #Шаги
     number=0    #Номер шага
     stepnumber='step0'  #Формовщик ключа
-    stepimg='./Data/Image404.png'   #Картинка шага
+    stepimg=None   #Картинка шага
     findsteps=soup.findAll('li', class_='cooking-bl')   #Поиск всех шагов
     if not findsteps:   #В случае верстки через общий блок
         finddiv=soup.findAll('div', itemtype="http://schema.org/Recipe")
@@ -88,23 +86,20 @@ def findreceip(order):
             datarec[stepnumber]=[stepimg, steptext]
     else:   #Случай верстки через теги
         for data in findsteps:
-            if data.find('img').attrs['src']:   #Если найдена картинка
+            if data.find('img'):   #Если найдена картинка
                 stepimg=data.find('img').attrs['src']
             else:
-                stepimg='./Data/Image404.png'
+                stepimg=None
             steptext=data.find('p').text    #Запись текста
             stepnumber=stepnumber.replace(str(number), str(number+1))   #Переключение номера
             number=number+1
             datarec[stepnumber]=[stepimg, steptext]     #Сохранение списка картинка + текст шага
-
     #Возвращает в вызывающую функцию словарь рецепта
     return datarec
 
 #Считать словари рецептов из файла receips.dat
 import pickle
 file=open("./Data/receips.dat", "rb")
-#subcategories=pickle.load(file)
-#urlreceip=pickle.load(file)
 loadsubcategories=pickle.load(file)
 loadurlreceip=pickle.load(file)
 

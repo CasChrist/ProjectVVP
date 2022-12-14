@@ -207,10 +207,15 @@ async def cooking(update, context):
             # Вывод в консоль названия выбранных рецепта и подкатегории (для отладки).
             print(title[0] + ": " + title[1] + ". Подкатегория: " + recipe[1])
             # Вывод пользователю картинки готового блюда, названия и краткого описания, а также ссылки на сайт.
-            await context.bot.send_photo(chat_id = update.effective_chat.id,
-                                         photo = chatids[update.effective_chat.id]['image'],
-                                         caption = message,
-                                         reply_markup = rm)
+            if chatids[update.effective_chat.id]['image'] is not None:
+                await context.bot.send_photo(chat_id = update.effective_chat.id,
+                                             photo = chatids[update.effective_chat.id]['image'],
+                                             caption = message,
+                                             reply_markup = rm)
+            else:  #Если в описании рецепта нет картинки
+                await context.bot.send_message( chat_id = update.effective_chat.id,
+                                                text = message,
+                                                reply_markup = rm)
             return COOKING
         # Срабатывает при нажатии "Случайный рецепт"
         case "start_random":
@@ -232,10 +237,15 @@ async def cooking(update, context):
             message = title[1] + "\n\nОписание:\n" + description + "\n\nИсточник: " + source
             # Вывод в консоль названия выбранных рецепта и подкатегории (для отладки).
             print(title[0] + ": " + title[1] + ". Подкатегория: " + subcat)
-            await context.bot.send_photo(chat_id = update.effective_chat.id,
-                                         photo = chatids[update.effective_chat.id]['image'],
-                                         caption = message,
-                                         reply_markup = rm)
+            if chatids[update.effective_chat.id]['image'] is not None:
+                await context.bot.send_photo(chat_id = update.effective_chat.id,
+                                             photo = chatids[update.effective_chat.id]['image'],
+                                             caption = message,
+                                             reply_markup = rm)
+            else:
+                await context.bot.send_message( chat_id = update.effective_chat.id,
+                                                text = message,
+                                                reply_markup = rm)
             return COOKING
         # Выводит пользователю список ингредиентов. Блокирует повторное нажатие кнопки "Посмотреть ингредиенты".
         case "ingredient":
@@ -265,9 +275,13 @@ async def cooking(update, context):
             if current_step_local == len(chatids[update.effective_chat.id]) - 6:
                 step_image = chatids[update.effective_chat.id][f"step{current_step_local}"][0]
                 step_text = f"Шаг {current_step_local}\n" + chatids[update.effective_chat.id][f"step{current_step_local}"][1] + FINAL_MESSAGE
-                await context.bot.send_photo(chat_id = update.effective_chat.id,
-                                             photo = step_image,
-                                             caption = step_text)
+                if step_image is not None:
+                    await context.bot.send_photo(   chat_id = update.effective_chat.id,
+                                                    photo = step_image,
+                                                    caption = step_text)
+                else:
+                    await context.bot.send_message( chat_id = update.effective_chat.id,
+                                                    text = step_text)
                 sleep(0.5)
                 await context.bot.send_message(chat_id = update.effective_chat.id,
                                                text = HINT_END)
@@ -283,10 +297,15 @@ async def cooking(update, context):
                 # Получает шаги по id чата
                 step_image = chatids[update.effective_chat.id][f"step{current_step_local}"][0]
                 step_text = f"Шаг {current_step_local}\n" + chatids[update.effective_chat.id][f"step{current_step_local}"][1]
-                await context.bot.send_photo(chat_id = update.effective_chat.id,
-                                             photo = step_image,
-                                             caption = step_text,
-                                             reply_markup = rm)
+                if step_image is not None:
+                    await context.bot.send_photo(   chat_id = update.effective_chat.id,
+                                                    photo = step_image,
+                                                    caption = step_text,
+                                                    reply_markup = rm)
+                else:
+                    await context.bot.send_message( chat_id = update.effective_chat.id,
+                                                    text = step_text,
+                                                    reply_markup = rm)
                 # Увеличить счетчик и записать в базу данных
                 chatids[update.effective_chat.id]['current_step'] += 1
                 file=open("./Data/chatids.dat", "wb")
