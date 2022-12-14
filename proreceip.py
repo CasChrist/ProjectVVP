@@ -79,8 +79,22 @@ def findreceip(order):
         finddiv=soup.findAll('div', itemtype="http://schema.org/Recipe")
         articlediv=finddiv[0]
         stepsdiv=articlediv.find('div', class_=None, id=None, itemprop=None)
-        for data in stepsdiv:   #Перебор компонентов блока
-            steptext=data.text
+        stepstext=stepsdiv.text.split("\n\r\n")
+        #Очистка рекламы
+        k=0
+        for data in stepstext:
+            if data.find("Этот рецепт - участник акции") is not -1:
+                stepstext[k-1]+='\n'+stepstext.pop(k)
+            k+=1
+        stepsimgs=[]
+        for data in stepsdiv.findAll('div'):
+            stepsimgs.append(data.find('img').attrs['src'])
+        for data in stepstext:  #Перебор компонентов блока  
+            steptext=data
+            if number<len(stepsimgs):
+                stepimg=stepsimgs[number]
+            else:
+                stepimg=None
             stepnumber=stepnumber.replace(str(number), str(number+1))   #Переключение номера шага
             number=number+1
             datarec[stepnumber]=[stepimg, steptext]
