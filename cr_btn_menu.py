@@ -5,10 +5,8 @@ from random import randint
 from time import sleep
 # Содержит словари названий и адресов рецептов
 import proreceip
-# Считать из файла базу данных открытых рецептов в чатах
-import pickle
-databaseinit=open("./Data/chatids.dat", "rb")
-chatids=pickle.load(databaseinit)
+# Создать базу данных по открытым рецептам пользователей
+chatids={}
 
 # Возвращаемые значения асинхронных функций, которые передаются в ConversationHandler.
 CHOOSING_CATEGORY, CATEGORY, COOKING = range(0, 3)
@@ -196,9 +194,6 @@ async def cooking(update, context):
             data = findreceip(receip)
             # Сохранить открытый рецепт в базу данных
             chatids[update.effective_chat.id]=data
-            # Записать данные по чату в файл ./Data/chatids.dat
-            file=open("./Data/chatids.dat", "wb")
-            pickle.dump(chatids, file)
             # Создать сообщение с описанием рецепта
             title       = chatids[update.effective_chat.id]['title'].split(': ')
             description = chatids[update.effective_chat.id]['description']
@@ -227,9 +222,6 @@ async def cooking(update, context):
             data = findreceip(receip)
             # Сохранить открытый рецепт в базу данных
             chatids[update.effective_chat.id]=data
-            # Записать данные по чату в файл ./Data/chatids.dat
-            file=open("./Data/chatids.dat", "wb")
-            pickle.dump(chatids, file)
             # Создать сообщение с описанием рецепта
             title       = chatids[update.effective_chat.id]['title'].split(': ')
             description = chatids[update.effective_chat.id]['description']
@@ -308,8 +300,6 @@ async def cooking(update, context):
                                                     reply_markup = rm)
                 # Увеличить счетчик и записать в базу данных
                 chatids[update.effective_chat.id]['current_step'] += 1
-                file=open("./Data/chatids.dat", "wb")
-                pickle.dump(chatids, file)
                 return COOKING
 
 # Выводит список подкатегорий. Игнорируется, если было выбрано "Случайный рецепт".
