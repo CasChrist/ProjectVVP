@@ -81,7 +81,7 @@ def findreceip(order):
         articlediv=finddiv[0]
         stepsdiv=articlediv.find('div', class_=None, id=None, itemprop=None)
         #Разделить блок на шаги по картинкам
-        stepstext=stepsdiv.text.split("\n\r\n")
+        stepstext=stepsdiv.text.split("\r\n")
         #Удалить пустые сплиты
         k=0
         for data in stepstext:
@@ -95,9 +95,14 @@ def findreceip(order):
                 stepstext[k-1]+='\n'+stepstext.pop(k)
             k+=1
         #Запись картинок
+        imgsstepsdiv=stepsdiv.findAll('div')
         stepsimgs=[]
-        for data in stepsdiv.findAll('div'):
-            stepsimgs.append(data.find('img').attrs['src'])
+        if imgsstepsdiv:
+            for data in stepsdiv.findAll('div'):
+                stepsimgs.append(data.find('img').attrs['src'])
+        else:
+            for data in stepsdiv.findAll('img'):
+                stepsimgs.append(data.attrs['src'])
         #Сборка и сохранение шагов
         for data in stepstext:  
             steptext=data
