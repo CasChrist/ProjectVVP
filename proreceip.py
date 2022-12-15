@@ -132,54 +132,33 @@ def findreceip(order):
     #Возвращает в вызывающую функцию словарь рецепта
     return datarec
 
-#Считать словари рецептов из файла receips.dat
+#Считать словари рецептов из файла ./Data/cleanreceips.dat
 import pickle
-file=open("./Data/receips.dat", "rb")
+file=open("./Data/cleanreceips.dat", "rb")
 loadsubcategories=pickle.load(file)
 loadurlreceip=pickle.load(file)
 
-#Модуль очистки словарей - сократить до нужной длины, удалить пустые
-#Удаление пустых ключей
-empty_keys = []
-for key in loadsubcategories.keys():
-    if loadsubcategories[key][0][0]==str:
-        empty_keys.append(key)
-for key in empty_keys:
-    del loadsubcategories[key]
-    del loadurlreceip[key]
-#Перебор ключей, удаление пустых значений
-for key in loadsubcategories.keys():
-    n=3
-    i=0
-    while i<n:  #Перебор страниц ключа
-        data=loadsubcategories[key][i]
-        m=5   #Перебор элементов страницы
-        j=0
-        while j<m:
-            if data[j]==str:   #Удалить пустой элемент
-                m=m-1   #Количество элементов на странице уменьшилось
-                del loadsubcategories[key][i][j]
-                del loadurlreceip[key][i][j]
-            else:   #Перейти к следующему элементу
-                j=j+1
-        if len(data)==0:    #Если страница пуста, удалить ее
-            n=n-1   #Количество страниц уменьшилось
-            del loadsubcategories[key][i]
-            del loadurlreceip[key][i]
-        else:   #Перейти к следующей странице
-            i=i+1
-#Сокращение длины названий подкатегорий и запись в словари
+#Доочистка словарей - сократить до нужной длины, удалить ненужные
 subcategories={}
 urlreceip={}
+delcat=[]
 for key in loadsubcategories.keys():
     newkey=key
     newkey=newkey.replace("закусочные ", "")
-    newkey=newkey.replace("Блюда из", "Из")
-    newkey=newkey.replace("Горячие блюда", "Горячее")
     newkey=newkey.replace("Другие м", "М")
-    newkey=newkey.replace(" в мультиварке", "")
+    #Удалить дублирующие и избыточные категории для упрощения пользовательского интерфейса
+    #В т.ч. алкоголь, консервы, конину и аэрогриль
+    if ("Горячие" in newkey)or("из" in newkey)or(" в " in newkey)or("Из " in newkey)or("лкогол" in newkey)or("онсерв" in newkey)or("онин" in newkey)or("грил" in newkey):
+        delcat.append(newkey)
+    else:   #Чтобы удаляемые ключи не дублировались
+        if len(loadsubcategories[key])==0:
+            delcat.append(newkey)
     subcategories[newkey]=loadsubcategories[key]
     urlreceip[newkey]=loadurlreceip[key]
+#Обрезка лишних подкатегорий
+for key in delcat:
+    del subcategories[key]
+    del urlreceip[key]
 
 #Словарь подкатегорий по номерам
 keys={}

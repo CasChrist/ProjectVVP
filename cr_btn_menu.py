@@ -60,24 +60,18 @@ def category_markups(category: str = "default") -> InlineKeyboardMarkup:
             keyboard = algorithm(8)
         case "Десерты":
             keyboard = algorithm(9)
-        case "В аэрогриле":
-            keyboard = algorithm(10)
-        case "Алкоголь":
-            keyboard = algorithm(11)
         case "Напитки":
-            keyboard = algorithm(12)
+            keyboard = algorithm(10)
         case "Каши":
-            keyboard = algorithm(13)
+            keyboard = algorithm(11)
         case "Украшения":
-            keyboard = algorithm(14)
+            keyboard = algorithm(12)
         case "В пароварке":
-            keyboard = algorithm(15)
+            keyboard = algorithm(13)
         case "Молочные продукты":
-            keyboard = algorithm(16)
-        case "В мультиварке":
-            keyboard = algorithm(17)
+            keyboard = algorithm(14)
         case "Маринад, панировка":
-            keyboard = algorithm(18)
+            keyboard = algorithm(15)
     # Возвращает объект 'InlineKeyboardMarkup', который является самой встроенной клавиатурой.
     category_markup = InlineKeyboardMarkup(keyboard)
     return category_markup
@@ -118,7 +112,6 @@ def recipe_markups(flag: str, step: int = None, length: int = None) -> list:
             keyboard.append([InlineKeyboardButton(f"Перейти к шагу {step} из {length}", callback_data = "step")])
             markup = InlineKeyboardMarkup(keyboard)
             return markup
-
 
 # Функция входа в диалог. Выдаёт перечень категорий.
 async def default(update, _):
