@@ -209,8 +209,10 @@ async def cooking(update, context):
         case "start_random":
             rm = recipe_markups(cooking_flag)
             # Аналогично 'start', только значения подбираются рандомно.
-            subcat = proreceip.keys[randint(0, 331)]
-            receip = proreceip.urlreceip[subcat][randint(0, 2)][randint(0, 4)]
+            subcat = proreceip.keys[randint(0, len(proreceip.subcategories)-1)]
+            recpage = randint(0, len(proreceip.subcategories[subcat]))
+            recnumber = randint(0, len(proreceip.subcategories[subcat][recpage]))
+            receip = proreceip.urlreceip[subcat][recpage][recnumber]
             # Скачать рецепт с сайта
             data = findreceip(receip)
             # Сохранить открытый рецепт в базу данных
