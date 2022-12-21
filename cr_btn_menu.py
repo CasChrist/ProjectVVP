@@ -240,7 +240,7 @@ async def cooking(update, context):
         case "ingredient":
             if ingredient_triggered is False:
                 await context.bot.send_chat_action(chat_id = update.effective_chat.id, action = constants.ChatAction.TYPING)
-                rm = recipe_markups(cooking_flag, current_step, len(chatids[update.effective_chat.id])-6)
+                rm = recipe_markups(cooking_flag, chatids[update.effective_chat.id]['current_step'], len(chatids[update.effective_chat.id]) - 6)
                 # Получить ингредиенты из базы данных по id чата
                 ingredients = chatids[update.effective_chat.id]['ingredients'].split("\n")
                 # Создать сообщение с ингредиентами
