@@ -115,7 +115,7 @@ def recipe_markups(flag: str, step: int = None, length: int = None) -> list:
 
 # Функция входа в диалог. Выдаёт перечень категорий.
 async def default(update, _):
-    await update.message.reply_text("Выберите категорию:", reply_markup = category_markups())
+    await update.message.reply_text("Выберите категорию", reply_markup = category_markups())
     return CHOOSING_CATEGORY
 
 # Информирует о выбранной категории и выдаёт клавиатуру с подкатегориями.
@@ -123,7 +123,7 @@ async def choice(update, _):
     query = update.callback_query
     variant = query.data
     await query.answer()
-    await query.edit_message_text(text = f"Вы выбрали {variant}.\nВыберите подкатегорию:",
+    await query.edit_message_text(text = f"Вы выбрали категорию «{variant}».\nВыберите подкатегорию:",
                                     reply_markup = category_markups(variant))
     return CATEGORY
 
@@ -239,6 +239,7 @@ async def cooking(update, context):
         # Выводит пользователю список ингредиентов. Блокирует повторное нажатие кнопки "Посмотреть ингредиенты".
         case "ingredient":
             if ingredient_triggered is False:
+                await context.bot.send_chat_action(chat_id = update.effective_chat.id, action = constants.ChatAction.TYPING)
                 rm = recipe_markups(cooking_flag, current_step, len(chatids[update.effective_chat.id])-6)
                 # Получить ингредиенты из базы данных по id чата
                 ingredients = chatids[update.effective_chat.id]['ingredients'].split("\n")
@@ -265,10 +266,12 @@ async def cooking(update, context):
                 step_image = chatids[update.effective_chat.id][f"step{current_step_local}"][0]
                 step_text = chatids[update.effective_chat.id][f"step{current_step_local}"][1] + FINAL_MESSAGE
                 if step_image is not None:
+                    await context.bot.send_chat_action(chat_id = update.effective_chat.id, action = constants.ChatAction.UPLOAD_PHOTO)
                     await context.bot.send_photo(   chat_id = update.effective_chat.id,
                                                     photo = step_image,
                                                     caption = f"Шаг {current_step_local}")
                 else:
+                    await context.bot.send_chat_action(chat_id = update.effective_chat.id, action = constants.ChatAction.TYPING)
                     step_text=f"Шаг {current_step_local}\n" + step_text
                 await context.bot.send_message( chat_id = update.effective_chat.id,
                                                 text = step_text)
@@ -288,10 +291,12 @@ async def cooking(update, context):
                 step_image = chatids[update.effective_chat.id][f"step{current_step_local}"][0]
                 step_text = chatids[update.effective_chat.id][f"step{current_step_local}"][1]
                 if step_image is not None:
+                    await context.bot.send_chat_action(chat_id = update.effective_chat.id, action = constants.ChatAction.UPLOAD_PHOTO)
                     await context.bot.send_photo(   chat_id = update.effective_chat.id,
                                                     photo = step_image,
                                                     caption = f"Шаг {current_step_local}\n")
                 else:
+                    await context.bot.send_chat_action(chat_id = update.effective_chat.id, action = constants.ChatAction.TYPING)
                     step_text=f"Шаг {current_step_local}\n" + step_text
                 await context.bot.send_message( chat_id = update.effective_chat.id,
                                                 text = step_text,
