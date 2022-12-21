@@ -1,4 +1,4 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, constants
 from telegram.ext import ContextTypes, ConversationHandler
 from proreceip import findreceip
 from random import randint
@@ -123,7 +123,7 @@ async def choice(update, _):
     query = update.callback_query
     variant = query.data
     await query.answer()
-    await query.edit_message_text(text = f"Вы выбрали: {variant}.\nВыберите подкатегорию:",
+    await query.edit_message_text(text = f"Вы выбрали {variant}.\nВыберите подкатегорию:",
                                     reply_markup = category_markups(variant))
     return CATEGORY
 
@@ -169,17 +169,18 @@ async def cooking(update, context):
         # Открывает предыдущую страницу рецептов.
         case "Prev":
             active_page -= 1
-            recipes = f"Рецепты в данной категории:\nСтраница {active_page+1} из {len(active_subcategory)}"
+            recipes = f"Рецепты в подкатегории «{active_variant}»\n\nСтраница {active_page+1} из {len(active_subcategory)}"
             await query.edit_message_text(text = recipes, reply_markup = active_subcategory[active_page])
             return COOKING
         # Открывает следующую страницу рецептов.
         case "Next":
             active_page += 1
-            recipes = f"Рецепты в данной категории:\nСтраница {active_page+1} из {len(active_subcategory)}"
+            recipes = f"Рецепты в подкатегории «{active_variant}»\n\nСтраница {active_page+1} из {len(active_subcategory)}"
             await query.edit_message_text(text = recipes, reply_markup = active_subcategory[active_page])
             return COOKING
         # Срабатывает при выборе рецепта.
         case "start":
+            await context.bot.send_chat_action(chat_id = update.effective_chat.id, action = constants.ChatAction.UPLOAD_PHOTO)
             rm = recipe_markups(cooking_flag)
             # Импортирует URL рецепта из словаря 'urlreceip'. Аргументы: подкатегория, страница рецепта, номер рецепта на странице.
             receip = proreceip.urlreceip[recipe[1]][int(recipe[2])][int(recipe[3])]
@@ -207,6 +208,7 @@ async def cooking(update, context):
             return COOKING
         # Срабатывает при нажатии "Случайный рецепт"
         case "start_random":
+            await context.bot.send_chat_action(chat_id = update.effective_chat.id, action = constants.ChatAction.UPLOAD_PHOTO)
             rm = recipe_markups(cooking_flag)
             # Аналогично 'start', только значения подбираются рандомно.
             subcat = proreceip.keys[randint(0, len(proreceip.subcategories)-1)]
@@ -310,8 +312,8 @@ async def category(update, _) -> int:
             return CHOOSING_CATEGORY
         case _:
             active_variant = variant
-            active_subcategory = subcategory_markups(variant)
-            message = f"Рецепты в подкатегории {variant}:\nСтраница {active_page+1} из {len(active_subcategory)}"
+            active_subcategory = subcategory_markups(active_variant)
+            message = f"Рецепты в подкатегории «{active_variant}»\n\nСтраница {active_page+1} из {len(active_subcategory)}"
             await query.edit_message_text(text = message, reply_markup = active_subcategory[active_page])
             return COOKING
 
