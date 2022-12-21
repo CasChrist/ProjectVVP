@@ -268,11 +268,10 @@ async def cooking(update, context):
                 if step_image is not None:
                     await context.bot.send_chat_action(chat_id = update.effective_chat.id, action = constants.ChatAction.UPLOAD_PHOTO)
                     await context.bot.send_photo(   chat_id = update.effective_chat.id,
-                                                    photo = step_image,
-                                                    caption = f"Шаг {current_step_local}")
+                                                    photo = step_image)
                 else:
                     await context.bot.send_chat_action(chat_id = update.effective_chat.id, action = constants.ChatAction.TYPING)
-                    step_text=f"Шаг {current_step_local}\n" + step_text
+                step_text = f"Шаг {current_step_local}\n\n" + step_text
                 await context.bot.send_message( chat_id = update.effective_chat.id,
                                                 text = step_text)
                 sleep(0.5)
@@ -286,18 +285,17 @@ async def cooking(update, context):
                 ingredient_triggered = False
                 return ConversationHandler.END
             else:
-                rm = recipe_markups(cooking_flag, current_step_local+1, len(chatids[update.effective_chat.id])-6)
+                rm = recipe_markups(cooking_flag, current_step_local+1, len(chatids[update.effective_chat.id]) - 6)
                 # Получает шаги по id чата
                 step_image = chatids[update.effective_chat.id][f"step{current_step_local}"][0]
                 step_text = chatids[update.effective_chat.id][f"step{current_step_local}"][1]
                 if step_image is not None:
                     await context.bot.send_chat_action(chat_id = update.effective_chat.id, action = constants.ChatAction.UPLOAD_PHOTO)
                     await context.bot.send_photo(   chat_id = update.effective_chat.id,
-                                                    photo = step_image,
-                                                    caption = f"Шаг {current_step_local}\n")
+                                                    photo = step_image)
                 else:
                     await context.bot.send_chat_action(chat_id = update.effective_chat.id, action = constants.ChatAction.TYPING)
-                    step_text=f"Шаг {current_step_local}\n" + step_text
+                step_text = f"Шаг {current_step_local}\n\n" + step_text
                 await context.bot.send_message( chat_id = update.effective_chat.id,
                                                 text = step_text,
                                                 reply_markup = rm)
