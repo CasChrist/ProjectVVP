@@ -76,7 +76,7 @@ def findreceip(order):
     stepimg=None   #Картинка шага
     findsteps=soup.findAll('li', class_='cooking-bl')   #Поиск всех шагов
 
-    if not findsteps:   #В случае верстки через общий блок
+    if len(findsteps)==0:   #В случае верстки через общий блок
         finddiv=soup.findAll('div', itemtype="http://schema.org/Recipe")
         articlediv=finddiv[0]
         stepsdiv=articlediv.find('div', class_=None, id=None, itemprop=None)
