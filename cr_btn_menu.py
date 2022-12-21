@@ -267,16 +267,27 @@ async def cooking(update, context):
                 step_text = chatids[update.effective_chat.id][f"step{current_step_local}"][1] + FINAL_MESSAGE
                 if step_image is not None:
                     await context.bot.send_chat_action(chat_id = update.effective_chat.id, action = constants.ChatAction.UPLOAD_PHOTO)
-                    await context.bot.send_photo(   chat_id = update.effective_chat.id,
+                    if step_text == "":
+                        await context.bot.send_photo(chat_id = update.effective_chat.id,
+                                                    photo = step_image, caption = HINT_END)
+                        active_subcategory.clear()
+                        active_variant = ""
+                        cooking_flag = ""
+                        current_step = 1
+                        active_page = 0
+                        ingredient_triggered = False
+                        return ConversationHandler.END
+                    else:
+                        await context.bot.send_photo(chat_id = update.effective_chat.id,
                                                     photo = step_image)
                 else:
                     await context.bot.send_chat_action(chat_id = update.effective_chat.id, action = constants.ChatAction.TYPING)
                 step_text = f"Шаг {current_step_local}\n\n" + step_text
-                await context.bot.send_message( chat_id = update.effective_chat.id,
+                await context.bot.send_message(chat_id = update.effective_chat.id,
                                                 text = step_text)
                 sleep(0.5)
                 await context.bot.send_message(chat_id = update.effective_chat.id,
-                                               text = HINT_END)
+                                                text = HINT_END)
                 active_subcategory.clear()
                 active_variant = ""
                 cooking_flag = ""
@@ -291,12 +302,18 @@ async def cooking(update, context):
                 step_text = chatids[update.effective_chat.id][f"step{current_step_local}"][1]
                 if step_image is not None:
                     await context.bot.send_chat_action(chat_id = update.effective_chat.id, action = constants.ChatAction.UPLOAD_PHOTO)
-                    await context.bot.send_photo(   chat_id = update.effective_chat.id,
-                                                    photo = step_image)
+                    if step_text == "":
+                        await context.bot.send_photo(chat_id = update.effective_chat.id,
+                                                        photo = step_image, reply_markup = rm)
+                        chatids[update.effective_chat.id]['current_step'] += 1
+                        return COOKING
+                    else:
+                        await context.bot.send_photo(chat_id = update.effective_chat.id,
+                                                        photo = step_image)
                 else:
                     await context.bot.send_chat_action(chat_id = update.effective_chat.id, action = constants.ChatAction.TYPING)
                 step_text = f"Шаг {current_step_local}\n\n" + step_text
-                await context.bot.send_message( chat_id = update.effective_chat.id,
+                await context.bot.send_message(chat_id = update.effective_chat.id,
                                                 text = step_text,
                                                 reply_markup = rm)
                 # Увеличить счетчик и записать в базу данных
