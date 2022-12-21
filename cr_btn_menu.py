@@ -84,7 +84,9 @@ def subcategory_markups(subcategory: str) -> list:
         for j in range(0,len(proreceip.subcategories[subcategory][i])):
             subcategory_keyboard.append([InlineKeyboardButton(proreceip.subcategories[subcategory][i][j],
                                                     callback_data=f"start.{subcategory}.{i}.{j}")])
-        if i == 0:
+        if len(proreceip.subcategories[subcategory]) == 1:
+            subcategory_keyboard.append([InlineKeyboardButton("Главная", callback_data="Main")])
+        elif i == 0:
             subcategory_keyboard.append([InlineKeyboardButton("Главная", callback_data="Main"),
                                                     InlineKeyboardButton("-->", callback_data="Next")])
         elif i == len(proreceip.subcategories[subcategory]) - 1:
