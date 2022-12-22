@@ -188,7 +188,11 @@ async def cooking(update, context):
             # Импортирует URL рецепта из словаря 'urlreceip'. Аргументы: подкатегория, страница рецепта, номер рецепта на странице.
             receip = proreceip.urlreceip[recipe[1]][int(recipe[2])][int(recipe[3])]
             # Скачать рецепт с сайта
-            data = findreceip(receip)
+            try:
+                data = findreceip(receip)
+            except:
+                context.bot.send_message(chat_id = update.effective_chat.id, message = "Что-то пошло не так. Попробуйте ещё раз или свяжитесь с администратором бота.")
+                return CHOOSING_CATEGORY
             # Сохранить открытый рецепт в базу данных
             chatids[update.effective_chat.id]=data
             # Создать сообщение с описанием рецепта
@@ -219,7 +223,11 @@ async def cooking(update, context):
             recnumber = randint(0, len(proreceip.subcategories[subcat][recpage])-1)
             receip = proreceip.urlreceip[subcat][recpage][recnumber]
             # Скачать рецепт с сайта
-            data = findreceip(receip)
+            try:
+                data = findreceip(receip)
+            except:
+                context.bot.send_message(chat_id = update.effective_chat.id, message = "Что-то пошло не так. Попробуйте ещё раз или свяжитесь с администратором бота.")
+                return CHOOSING_CATEGORY
             # Сохранить открытый рецепт в базу данных
             chatids[update.effective_chat.id]=data
             # Создать сообщение с описанием рецепта
