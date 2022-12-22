@@ -3,6 +3,7 @@ from telegram.ext import ContextTypes, ConversationHandler
 from proreceip import findreceip
 from random import randint
 from time import sleep
+from telegram import InputMediaPhoto
 # Содержит словари названий и адресов рецептов
 import proreceip
 # Создать базу данных по открытым рецептам пользователей
@@ -265,25 +266,23 @@ async def cooking(update, context):
             current_step_local = chatids[update.effective_chat.id]['current_step']
             # Сброс переменных на последнем шаге и завершение диалога.
             if current_step_local == len(chatids[update.effective_chat.id]) - 6:
-                step_image = chatids[update.effective_chat.id][f"step{current_step_local}"][0]
+                #Отправка последнего шага
+                step_images = chatids[update.effective_chat.id][f"step{current_step_local}"][0]
                 step_text = chatids[update.effective_chat.id][f"step{current_step_local}"][1] + FINAL_MESSAGE
-                if step_image is not None:
+                #Разбор количества фотографий в рецепте
+                if len(step_images)==1 and step_images[0]!=None:
                     await context.bot.send_chat_action(chat_id = update.effective_chat.id, action = constants.ChatAction.UPLOAD_PHOTO)
-                    if step_text == "":
-                        await context.bot.send_photo(chat_id = update.effective_chat.id,
-                                                    photo = step_image, caption = HINT_END)
-                        active_subcategory.clear()
-                        active_variant = ""
-                        cooking_flag = ""
-                        current_step = 1
-                        active_page = 0
-                        ingredient_triggered = False
-                        return ConversationHandler.END
-                    else:
-                        await context.bot.send_photo(chat_id = update.effective_chat.id,
-                                                    photo = step_image)
-                else:
-                    await context.bot.send_chat_action(chat_id = update.effective_chat.id, action = constants.ChatAction.TYPING)
+                    await context.bot.send_photo(chat_id = update.effective_chat.id,
+                                                    photo = step_images[0])
+                elif len(step_images)>1:
+                    await context.bot.send_chat_action(chat_id = update.effective_chat.id, action = constants.ChatAction.UPLOAD_PHOTO)
+                    images_to_send=[]
+                    for img in step_images:
+                        images_to_send.append(InputMediaPhoto(media = img))
+                    await context.bot.send_media_group(chat_id = update.effective_chat.id,
+                                                        media=images_to_send)
+                #Отправка текста шага + заверение диалога
+                await context.bot.send_chat_action(chat_id = update.effective_chat.id, action = constants.ChatAction.TYPING)
                 step_text = f"Шаг {current_step_local}\n\n" + step_text
                 await context.bot.send_message(chat_id = update.effective_chat.id,
                                                 text = step_text)
@@ -300,20 +299,24 @@ async def cooking(update, context):
             else:
                 rm = recipe_markups(cooking_flag, current_step_local+1, len(chatids[update.effective_chat.id]) - 6)
                 # Получает шаги по id чата
-                step_image = chatids[update.effective_chat.id][f"step{current_step_local}"][0]
+                step_images = chatids[update.effective_chat.id][f"step{current_step_local}"][0]
                 step_text = chatids[update.effective_chat.id][f"step{current_step_local}"][1]
-                if step_image is not None:
+                #Разбор количества фотографий в рецепте
+                #Одно фото
+                if len(step_images)==1 and step_images[0]!=None:
                     await context.bot.send_chat_action(chat_id = update.effective_chat.id, action = constants.ChatAction.UPLOAD_PHOTO)
-                    if step_text == "":
-                        await context.bot.send_photo(chat_id = update.effective_chat.id,
-                                                        photo = step_image, reply_markup = rm)
-                        chatids[update.effective_chat.id]['current_step'] += 1
-                        return COOKING
-                    else:
-                        await context.bot.send_photo(chat_id = update.effective_chat.id,
-                                                        photo = step_image)
-                else:
-                    await context.bot.send_chat_action(chat_id = update.effective_chat.id, action = constants.ChatAction.TYPING)
+                    await context.bot.send_photo(chat_id = update.effective_chat.id,
+                                                        photo = step_images[0])
+                #Несколько фото
+                elif len(step_images)>1:
+                    await context.bot.send_chat_action(chat_id = update.effective_chat.id, action = constants.ChatAction.UPLOAD_PHOTO)
+                    images_to_send=[]
+                    for img in step_images:
+                        images_to_send.append(InputMediaPhoto(media = img))
+                    await context.bot.send_media_group(chat_id = update.effective_chat.id,
+                                                        media=images_to_send)
+                await context.bot.send_chat_action(chat_id = update.effective_chat.id, action = constants.ChatAction.TYPING)
+                #Отправка текста шага + кнопки следующего шага
                 step_text = f"Шаг {current_step_local}\n\n" + step_text
                 await context.bot.send_message(chat_id = update.effective_chat.id,
                                                 text = step_text,

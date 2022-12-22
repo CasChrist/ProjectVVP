@@ -11,7 +11,7 @@ def findreceip(order):
         "description":  'ExDesNotFound',
         "resource":      order,
         "ingredients":  'ExIngNotFound', 
-        "step1":        [None, 'ExStsNotFound']}
+        "step1":        [[], '']}
     #Где: картинка, название, описание, адрес рецепта на сайте, ингредиенты, шаги рецепта (с картинкой)
 
     #Создаем url
@@ -71,94 +71,39 @@ def findreceip(order):
     datarec['ingredients']=datarec['ingredients'][:-1]
 
     #Шаги
-    number=0    #Номер шага
-    stepnumber='step0'  #Формовщик ключа
-    stepimg=None   #Картинка шага
+    number=1    #Номер шага
+    stepnumber='step1'  #Формовщик ключа
+    stepimg=None   #Картинки шага
     findsteps=soup.findAll('li', class_='cooking-bl')   #Поиск всех шагов
-
-    if len(findsteps)==0:   #В случае верстки через общий блок
-        finddiv=soup.findAll('div', itemtype="http://schema.org/Recipe")
-        articlediv=finddiv[0]
-        stepsdiv=articlediv.find('div', class_=None, id=None, itemprop=None)
-        #Разделить блок на шаги по картинкам
-        stepstext=stepsdiv.text.split("\r\n")
-        #Удалить пустые сплиты
-        k=0
-        for data in stepstext:
-            if data == '':
-                stepstext.pop(k)
-            k+=1
-        #Компоновка рекламы
-        k=0
-        for data in stepstext:
-            if data.find("Этот рецепт - участник акции") != -1:
-                stepstext[k-1]+='\n'+stepstext.pop(k)
-            k+=1
+    #Просмотр тегов шагов
+    for data in findsteps:
         #Запись картинок
-        imgsstepsdiv=stepsdiv.findAll('div')
-        stepsimgs=[]
-        if imgsstepsdiv:
-            for data in stepsdiv.findAll('div'):
-                stepsimgs.append(data.find('img').attrs['src'])
+        if data.find('img'):
+            stepimg=data.find('img').attrs['src']
+            datarec[stepnumber][0].append(stepimg)
         else:
-            for data in stepsdiv.findAll('img'):
-                stepsimgs.append(data.attrs['src'])
-        #Сборка и сохранение шагов
-        for data in stepstext:  
-            steptext=data
-            if number<len(stepsimgs):
-                stepimg=stepsimgs[number]
-            else:
-                stepimg=None
-            stepnumber=stepnumber.replace(str(number), str(number+1))   #Переключение номера шага
-            number=number+1
-            datarec[stepnumber]=[stepimg, steptext]
-
-    else:   #Случай верстки через теги
-        #Просмотр тегов шагов
-        for data in findsteps:
-            #Запись картинки
-            if data.find('img'):
-                stepimg=data.find('img').attrs['src']
-            else:
-                stepimg=None
-            #Запись текста
-            steptext=data.find('p').text
-            #Сохранение шагов
+            stepimg=None
+        #Запись текста
+        steptext=data.find('p').text
+        datarec[stepnumber][1]=steptext
+        #Сохранение шагов, если есть текст
+        if len(steptext)!=0:
             stepnumber=stepnumber.replace(str(number), str(number+1))
+            #Создание экземпляра следующего шага
+            datarec[stepnumber]=[[], '']
             number=number+1
-            datarec[stepnumber]=[stepimg, steptext]
-            
+            steptext=''
+    #Удаление последнего прототипа шага (пустой)
+    del datarec[stepnumber]
+
     #Возвращает в вызывающую функцию словарь рецепта
     return datarec
 
 #Считать словари рецептов из файла ./Data/cleanreceips.dat
 import pickle
 file=open("./Data/cleanreceips.dat", "rb")
-loadsubcategories=pickle.load(file)
-loadurlreceip=pickle.load(file)
-
-#Доочистка словарей - сократить до нужной длины, удалить ненужные
-subcategories={}
-urlreceip={}
-delcat=[]
-for key in loadsubcategories.keys():
-    newkey=key
-    newkey=newkey.replace("закусочные ", "")
-    newkey=newkey.replace("Другие м", "М")
-    #Удалить дублирующие и избыточные категории для упрощения пользовательского интерфейса
-    #В т.ч. алкоголь, консервы, конину и аэрогриль
-    if ("Горячие" in newkey)or("из" in newkey)or(" в " in newkey)or("Из " in newkey)or("лкогол" in newkey)or("онсерв" in newkey)or("онин" in newkey)or("грил" in newkey):
-        delcat.append(newkey)
-    else:   #Чтобы удаляемые ключи не дублировались
-        if len(loadsubcategories[key])==0:
-            delcat.append(newkey)
-    subcategories[newkey]=loadsubcategories[key]
-    urlreceip[newkey]=loadurlreceip[key]
-#Обрезка лишних подкатегорий
-for key in delcat:
-    del subcategories[key]
-    del urlreceip[key]
+subcategories=pickle.load(file)
+urlreceip=pickle.load(file)
 
 #Словарь подкатегорий по номерам
 keys={}
