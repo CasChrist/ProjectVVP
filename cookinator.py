@@ -14,15 +14,15 @@ async def start(update, context):
 
 # Если уже запущен диалог, функция проинформирует об этом.
 async def reject_begin(update, _):
-    await update.message.reply_text("❌ Уже открыт один каталог. Зачем открывать второй точно такой же?")
+    await update.message.reply_text("❌ Уже открыт один каталог.\nИспользуйте /stop чтобы прекратить выполнение рецепта")
 
 # Если диалог не запущен, функция проинформирует об этом (загадочно).
 async def reject_stop(update, _):
-    await update.message.reply_text("❌ Нет-нет, этой командой меня не остановить. По крайней мере, не сейчас.")
+    await update.message.reply_text("❌ Нет-нет, этой командой меня не остановить. По крайней мере, не сейчас.\nВведите /begin чтобы открыть каталог рецептов.")
 
 # Ответ на неизвестную команду с '/'
 async def unknown(update, _):
-    await update.message.reply_text("Не знаю такой команды :(")
+    await update.message.reply_text("Не знаю такой команды :(\nВведите /begin чтобы открыть каталог рецептов.")
 
 if __name__ == '__main__':
     # Создание бота через модуль telegram.ext. Токен берётся из файла secret_info.py

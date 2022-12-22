@@ -102,8 +102,37 @@ def findreceip(order):
 #Считать словари рецептов из файла ./Data/cleanreceips.dat
 import pickle
 file=open("./Data/cleanreceips.dat", "rb")
-subcategories=pickle.load(file)
-urlreceip=pickle.load(file)
+loadsubcategories=pickle.load(file)
+loadurlreceip=pickle.load(file)
+
+#Доочистка словарей - сократить до нужной длины, удалить ненужные
+subcategories={}
+urlreceip={}
+test=[]
+delcat=[]
+for key in loadsubcategories.keys():
+    #Сократить названия ключей
+    newkey=key
+    newkey=newkey.replace("Фаршированная р", "Р")
+    #Удалить рецепты c битыми картинками
+    i=0
+    for page in loadsubcategories[key]:
+        j=0
+        for elem in page:
+            if ("ньок" in elem):
+                loadsubcategories[key][i].pop(j)
+            j+=1
+            if len(loadsubcategories[key][i])==0:
+                loadsubcategories[key].pop(i)
+        i+=1
+    if len(loadsubcategories[key])==0:
+        delcat.append(newkey)
+    subcategories[newkey]=loadsubcategories[key]
+    urlreceip[newkey]=loadurlreceip[key]
+#Обрезка лишних подкатегорий
+for key in delcat:
+    del subcategories[key]
+    del urlreceip[key]
 
 #Словарь подкатегорий по номерам
 keys={}
